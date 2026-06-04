@@ -45,7 +45,12 @@
     section.flex-1 { padding: 0.75rem !important; }
     .file-preview table { font-size: 0.75rem; }
     .file-preview th, .file-preview td { padding: 0.25rem 0.4rem; }
+    #mobile-nav { display: flex !important; }
   }
+  #mobile-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e5e7eb; z-index: 50; padding: 0.5rem 0; padding-bottom: env(safe-area-inset-bottom); }
+  #mobile-nav button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.2rem; font-size: 0.65rem; color: #6b7280; padding: 0.25rem; }
+  #mobile-nav button.active { color: #2563eb; }
+  #mobile-nav button span:first-child { font-size: 1.2rem; }
   .nav-btn { display: flex; align-items: center; gap: 0.5rem; width: 100%; text-align: left; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; color: #374151; transition: all 0.15s; }
   .nav-btn:hover { background: #f3f4f6; color: #111827; }
   .nav-btn.active { background: #eff6ff; color: #1d4ed8; font-weight: 600; }
@@ -120,6 +125,12 @@
             <span>ホーム</span>
           </button>
         </li>
+        <li>
+          <button class="nav-btn" data-view="calendar">
+            <span>📅</span>
+            <span>カレンダー</span>
+          </button>
+        </li>
       </ul>
     </section>
 
@@ -136,11 +147,18 @@
   </aside>
 
   <!-- メインエリア -->
-  <section class="flex-1 p-6 min-w-0">
+  <section class="flex-1 p-6 min-w-0" style="padding-bottom: 5rem;">
     <div id="main-content" class="fade-in"></div>
   </section>
 
 </main>
+
+<!-- スマホ用ボトムナビ -->
+<nav id="mobile-nav">
+  <button id="mob-home"><span>🏠</span><span>ホーム</span></button>
+  <button id="mob-calendar"><span>📅</span><span>カレンダー</span></button>
+  <button id="mob-clients"><span>👥</span><span>顧客</span></button>
+</nav>
 
 <script>
 (function() {
@@ -292,6 +310,14 @@
     updateNavActive();
     render();
   });
+  // カレンダーボタンのクリックハンドラ
+  mainNav.querySelector('[data-view="calendar"]').addEventListener('click', () => {
+    state.viewMode = 'calendar';
+    state.currentCategory = null;
+    state.currentFile = null;
+    updateNavActive();
+    render();
+  });
 
   // カテゴリ表示順 (アイコン付き)
   const categoryIcons = {
@@ -337,7 +363,8 @@
     document.querySelectorAll('#main-nav .nav-btn').forEach(b => {
       const isActive =
         (state.viewMode === 'home' && b.dataset.view === 'home') ||
-        (state.viewMode !== 'home' && b.dataset.category === state.currentCategory);
+        (state.viewMode === 'calendar' && b.dataset.view === 'calendar') ||
+        (state.viewMode !== 'home' && state.viewMode !== 'calendar' && b.dataset.category === state.currentCategory);
       b.classList.toggle('active', isActive);
     });
   }
@@ -353,6 +380,29 @@
   });
   updateNavActive();
   render();
+
+  // スマホ用ボトムナビ
+  function updateMobileNav() {
+    const home = document.getElementById('mob-home');
+    const cal = document.getElementById('mob-calendar');
+    const clients = document.getElementById('mob-clients');
+    if (home) home.classList.toggle('active', state.viewMode === 'home');
+    if (cal) cal.classList.toggle('active', state.viewMode === 'calendar');
+    if (clients) clients.classList.toggle('active', state.viewMode === 'list' && state.currentCategory === '顧客管理');
+  }
+  document.getElementById('mob-home')?.addEventListener('click', () => {
+    state.viewMode = 'home'; state.currentCategory = null; state.currentFile = null;
+    updateNavActive(); updateMobileNav(); render();
+  });
+  document.getElementById('mob-calendar')?.addEventListener('click', () => {
+    state.viewMode = 'calendar'; state.currentCategory = null; state.currentFile = null;
+    updateNavActive(); updateMobileNav(); render();
+  });
+  document.getElementById('mob-clients')?.addEventListener('click', () => {
+    state.viewMode = 'list'; state.currentCategory = '顧客管理'; state.currentFile = null;
+    updateNavActive(); updateMobileNav(); render();
+  });
+  updateMobileNav();
 
   // ハッシュ変更を監視 (戻る/進むボタン対応)
   window.addEventListener('hashchange', () => {
@@ -401,11 +451,137 @@
 
     if (state.viewMode === 'home') {
       renderHome(root);
+    } else if (state.viewMode === 'calendar') {
+      renderCalendar(root);
     } else if (state.viewMode === 'list') {
       renderList(root);
     } else if (state.viewMode === 'detail') {
       renderDetail(root);
     }
+  }
+
+  // ============================
+  // カレンダービュー
+  // ============================
+  function renderCalendar(root) {
+    const todos = normalizeTodos((data.todos || {})[state.currentUser]);
+    const allItems = todos.active || [];
+
+    // 日付ごとにグループ化
+    const byDate = {};
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    // 今日から14日分の枠を作る
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() + i);
+      const key = d.toISOString().slice(0,10);
+      byDate[key] = [];
+    }
+
+    // タスクを日付に振り分け
+    allItems.forEach(t => {
+      const key = t.date || 'nodate';
+      if (!byDate[key]) byDate[key] = [];
+      byDate[key].push(t);
+    });
+
+    const dayNames = ['日','月','火','水','木','金','土'];
+    const kindColors = {
+      meeting: 'bg-blue-100 border-blue-300 text-blue-800',
+      deadline: 'bg-red-100 border-red-300 text-red-800',
+      task: 'bg-green-100 border-green-300 text-green-800',
+      waiting: 'bg-gray-100 border-gray-300 text-gray-600',
+    };
+    const priorityDot = { '最高': '🔴', '高': '🟠', '通常': '🟡', '低': '🟢' };
+
+    const wrap = document.createElement('div');
+    wrap.className = 'space-y-3 pb-8';
+
+    // ヘッダー
+    const h = document.createElement('h2');
+    h.className = 'text-lg font-bold text-gray-800 mb-4 flex items-center gap-2';
+    h.innerHTML = '📅 スケジュール <span class="text-sm font-normal text-gray-400">（今後14日）</span>';
+    wrap.appendChild(h);
+
+    Object.keys(byDate).sort().forEach(dateKey => {
+      const items = byDate[dateKey];
+      const d = new Date(dateKey + 'T00:00:00');
+      const isToday = dateKey === today.toISOString().slice(0,10);
+      const isTomorrow = dateKey === new Date(today.getTime() + 86400000).toISOString().slice(0,10);
+      const dow = dayNames[d.getDay()];
+      const isSun = d.getDay() === 0;
+      const isSat = d.getDay() === 6;
+
+      // 予定がない日はスキップ（シンプルに）
+      if (items.length === 0 && !isToday) return;
+
+      const dayCard = document.createElement('div');
+      dayCard.className = 'flex gap-3 items-start';
+
+      // 日付ラベル
+      const dateLabel = document.createElement('div');
+      dateLabel.className = 'flex-shrink-0 w-14 text-center';
+      const monthDay = `${d.getMonth()+1}/${d.getDate()}`;
+      const dowColor = isSun ? 'text-red-500' : isSat ? 'text-blue-500' : 'text-gray-500';
+      dateLabel.innerHTML = `
+        <div class="text-xs ${dowColor} font-medium">${dow}</div>
+        <div class="text-lg font-bold ${isToday ? 'text-blue-600' : 'text-gray-800'}">${d.getDate()}</div>
+        <div class="text-xs text-gray-400">${d.getMonth()+1}月</div>
+        ${isToday ? '<div class="text-xs bg-blue-600 text-white rounded-full px-1 mt-0.5">今日</div>' : ''}
+        ${isTomorrow ? '<div class="text-xs bg-orange-400 text-white rounded-full px-1 mt-0.5">明日</div>' : ''}
+      `;
+      dayCard.appendChild(dateLabel);
+
+      // タスクエリア
+      const taskArea = document.createElement('div');
+      taskArea.className = 'flex-1 space-y-2 min-w-0';
+
+      if (items.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'text-sm text-gray-300 italic py-2';
+        empty.textContent = '予定なし';
+        taskArea.appendChild(empty);
+      } else {
+        items.forEach(t => {
+          const card = document.createElement('div');
+          const color = kindColors[t.kind] || kindColors.task;
+          card.className = `border rounded-lg px-3 py-2 text-sm ${color}`;
+          const dot = priorityDot[t.priority] || '';
+          card.innerHTML = `
+            <div class="font-medium">${dot} ${escapeHtml(t.task)}</div>
+            ${t.date_label ? `<div class="text-xs opacity-70 mt-0.5">${escapeHtml(t.date_label)}</div>` : ''}
+            ${t.waiting_on ? `<div class="text-xs opacity-70 mt-0.5">⏳ ${escapeHtml(t.waiting_on)}</div>` : ''}
+          `;
+          taskArea.appendChild(card);
+        });
+      }
+
+      dayCard.appendChild(taskArea);
+      wrap.appendChild(dayCard);
+
+      // 区切り線
+      const hr = document.createElement('hr');
+      hr.className = 'border-gray-100';
+      wrap.appendChild(hr);
+    });
+
+    // 日付未定タスク
+    if ((byDate['nodate'] || []).length > 0) {
+      const nd = document.createElement('div');
+      nd.className = 'mt-4';
+      nd.innerHTML = '<h3 class="text-sm font-semibold text-gray-400 mb-2">📌 日付未定</h3>';
+      byDate['nodate'].forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'border rounded-lg px-3 py-2 text-sm bg-gray-50 border-gray-200 mb-2';
+        card.innerHTML = `<div class="font-medium text-gray-700">${escapeHtml(t.task)}</div>`;
+        nd.appendChild(card);
+      });
+      wrap.appendChild(nd);
+    }
+
+    root.appendChild(wrap);
   }
 
   function renderHome(root) {
