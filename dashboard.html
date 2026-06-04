@@ -1,0 +1,1904 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ととのAI - Kelly</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root { --page-header-h: 64px; }
+  body { font-family: "Noto Sans JP", -apple-system, BlinkMacSystemFont, sans-serif; }
+  .file-preview h1 { font-size: 1.5rem; font-weight: bold; margin: 1rem 0 0.5rem; scroll-margin-top: calc(var(--page-header-h) + 16px); }
+  .file-preview h2 { font-size: 1.25rem; font-weight: bold; margin: 1.5rem 0 0.5rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.25rem; scroll-margin-top: calc(var(--page-header-h) + 16px); }
+  .file-preview h3 { font-size: 1.05rem; font-weight: bold; margin: 1rem 0 0.5rem; scroll-margin-top: calc(var(--page-header-h) + 16px); }
+  .toc-sidebar { position: sticky; top: calc(var(--page-header-h) + 16px); max-height: calc(100vh - var(--page-header-h) - 32px); overflow-y: auto; padding: 0.5rem 0; }
+  body.toc-hidden .toc-col { display: none !important; }
+  .toc-toggle { font-size: 0.7rem; color: #6b7280; background: #fff; border: 1px solid #e5e7eb; border-radius: 9999px; padding: 0.2rem 0.7rem; display: inline-flex; align-items: center; gap: 0.25rem; transition: all 0.15s; cursor: pointer; }
+  .toc-toggle:hover { color: #2563eb; border-color: #93c5fd; background: #eff6ff; }
+  .sticky-detail-header { position: sticky; top: var(--page-header-h); z-index: 5; background: #f9fafb; }
+  .toc-link { display: block; padding: 0.25rem 0.75rem; font-size: 0.8rem; color: #6b7280; border-left: 2px solid transparent; transition: all 0.15s; line-height: 1.4; }
+  .toc-link:hover { color: #2563eb; border-left-color: #93c5fd; background: #f9fafb; }
+  .toc-link.h3 { padding-left: 1.5rem; font-size: 0.75rem; color: #9ca3af; }
+  .toc-link.active { color: #2563eb; border-left-color: #2563eb; font-weight: 600; background: #eff6ff; }
+  .file-preview p { margin: 0.5rem 0; line-height: 1.7; }
+  .file-preview ul, .file-preview ol { margin: 0.5rem 0 0.5rem 1.5rem; }
+  .file-preview ul li { list-style: disc; }
+  .file-preview ol li { list-style: decimal; }
+  .file-preview table { border-collapse: collapse; margin: 0.75rem 0; width: 100%; }
+  .file-preview th, .file-preview td { border: 1px solid #e5e7eb; padding: 0.4rem 0.6rem; text-align: left; }
+  .file-preview th { background: #f9fafb; font-weight: 600; }
+  .file-preview code { background: #f3f4f6; padding: 0.1rem 0.3rem; border-radius: 0.25rem; font-size: 0.875em; }
+  .file-preview pre { background: #1f2937; color: #f9fafb; padding: 0.75rem; border-radius: 0.5rem; overflow-x: auto; }
+  .file-preview pre code { background: transparent; color: inherit; padding: 0; }
+  .file-preview blockquote { border-left: 3px solid #e5e7eb; padding-left: 1rem; color: #6b7280; margin: 0.5rem 0; }
+  .file-preview a { color: #2563eb; text-decoration: underline; }
+  .priority-最高 { background-color: #fecaca; color: #991b1b; }
+  .priority-高 { background-color: #fed7aa; color: #9a3412; }
+  .priority-通常 { background-color: #e0e7ff; color: #3730a3; }
+  .priority-低 { background-color: #d1fae5; color: #065f46; }
+  .fade-in { animation: fadeIn 0.3s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  .nav-btn { display: flex; align-items: center; gap: 0.5rem; width: 100%; text-align: left; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; color: #374151; transition: all 0.15s; }
+  .nav-btn:hover { background: #f3f4f6; color: #111827; }
+  .nav-btn.active { background: #eff6ff; color: #1d4ed8; font-weight: 600; }
+  .nav-btn .count { margin-left: auto; font-size: 0.7rem; color: #9ca3af; background: #f3f4f6; padding: 0.05rem 0.4rem; border-radius: 9999px; }
+  .nav-btn.active .count { background: #dbeafe; color: #1d4ed8; }
+  .breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: #6b7280; margin-bottom: 1rem; }
+  .breadcrumb a { color: #2563eb; cursor: pointer; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .file-card { padding: 0.85rem 1rem; background: white; border: 1px solid #e5e7eb; border-radius: 0.5rem; cursor: pointer; transition: all 0.15s; }
+  .file-card:hover { border-color: #93c5fd; background: #eff6ff; transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
+  .type-badge { display: inline-block; font-size: 0.65rem; padding: 0.1rem 0.45rem; border-radius: 0.3rem; font-weight: 600; white-space: nowrap; letter-spacing: 0.02em; }
+</style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+<!-- データ読み込み (Phase 2: マルチファイル分割アーキテクチャ) -->
+<!-- manifest.js で全データファイルのリストを取得し、動的に読み込む -->
+<script src="dashboard/manifest.js"></script>
+<script>
+  (function() {
+    const m = window.TOTONO_MANIFEST || {};
+    const files = [
+      m.meta,
+      m.todos,
+      m.backlog,
+      m.delegations,
+      m.files_index,
+      m.expenses,
+    ].filter(Boolean).concat(m.content || []);
+    files.forEach(function(src) {
+      document.write('<script src="dashboard/' + src + '"><' + '/script>');
+    });
+  })();
+</script>
+
+<!-- ヘッダー -->
+<header class="bg-white border-b border-gray-200 sticky top-0 z-10">
+  <div class="max-w-full mx-auto px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <span class="text-2xl">🪷</span>
+      <div>
+        <h1 class="text-lg font-bold text-gray-900">ととのAI</h1>
+        <p class="text-xs text-gray-500" id="company-name"></p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 text-sm text-gray-500">
+      <span>🔄</span>
+      <span id="updated-at"></span>
+    </div>
+  </div>
+</header>
+
+<!-- メインレイアウト -->
+<main class="flex max-w-full mx-auto">
+
+  <!-- 左サイドバー -->
+  <aside id="left-sidebar" class="w-60 bg-white border-r border-gray-200 p-3 flex-shrink-0 sticky overflow-y-auto" style="top: var(--page-header-h); height: calc(100vh - var(--page-header-h));">
+
+    <!-- ユーザー切替 -->
+    <section class="mb-5">
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5 px-2">ユーザー</h2>
+      <ul id="user-list" class="space-y-0.5"></ul>
+    </section>
+
+    <!-- メインナビ -->
+    <section class="mb-5">
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5 px-2">ナビ</h2>
+      <ul id="main-nav" class="space-y-0.5">
+        <li>
+          <button class="nav-btn" data-view="home">
+            <span>🏠</span>
+            <span>ホーム</span>
+          </button>
+        </li>
+      </ul>
+    </section>
+
+    <!-- 全体ダッシュボード -->
+    <section>
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5 px-2">全体</h2>
+      <div class="text-xs text-gray-600 space-y-1 px-2">
+        <div class="flex justify-between"><span>ユーザー</span><span id="stat-users" class="font-semibold"></span></div>
+        <div class="flex justify-between"><span>今日のTODO</span><span id="stat-todos" class="font-semibold"></span></div>
+        <div class="flex justify-between"><span>委任中</span><span id="stat-delegations" class="font-semibold"></span></div>
+      </div>
+    </section>
+
+  </aside>
+
+  <!-- メインエリア -->
+  <section class="flex-1 p-6 min-w-0">
+    <div id="main-content" class="fade-in"></div>
+  </section>
+
+</main>
+
+<script>
+(function() {
+  // データはマルチファイル分割で window.TOTONO_DATA に集約されている
+  const data = window.TOTONO_DATA;
+  if (!data) {
+    document.body.innerHTML = '<div class="p-8 text-red-600">データの読み込みに失敗しました。dashboard/manifest.js とそのデータファイルを確認してください。</div>';
+    return;
+  }
+
+  // ヘッダー
+  document.getElementById('company-name').textContent = data.company.name;
+  document.getElementById('updated-at').textContent = formatTime(data.updated_at);
+
+  // TOC 表示状態の復元 (localStorage)
+  try {
+    if (localStorage.getItem('totono.tocHidden') === '1') {
+      document.body.classList.add('toc-hidden');
+    }
+  } catch (e) {}
+
+  // TOC 表示切り替えボタン (どのビューからも使える共通ヘルパー)
+  function createTocToggle() {
+    const btn = document.createElement('button');
+    btn.className = 'toc-toggle';
+    btn.type = 'button';
+    const updateLabel = () => {
+      const hidden = document.body.classList.contains('toc-hidden');
+      btn.textContent = hidden ? '目次を表示 ›' : '‹ 目次を隠す';
+      btn.title = hidden ? '目次サイドバーを表示' : '目次サイドバーを隠す（タスク名の表示領域を広げる）';
+    };
+    btn.addEventListener('click', () => {
+      const willHide = !document.body.classList.contains('toc-hidden');
+      document.body.classList.toggle('toc-hidden', willHide);
+      try { localStorage.setItem('totono.tocHidden', willHide ? '1' : '0'); } catch (e) {}
+      updateLabel();
+    });
+    updateLabel();
+    return btn;
+  }
+
+  // ページヘッダーの高さを測って CSS 変数にセット (sticky 要素の基準値に使う)
+  function syncPageHeaderHeight() {
+    const headerEl = document.querySelector('header.sticky');
+    if (headerEl) {
+      const h = Math.ceil(headerEl.getBoundingClientRect().height);
+      document.documentElement.style.setProperty('--page-header-h', h + 'px');
+    }
+  }
+  syncPageHeaderHeight();
+  window.addEventListener('resize', syncPageHeaderHeight);
+
+  // 統計
+  document.getElementById('stat-users').textContent = (data.users || []).length;
+  const allTodos = Object.values(data.todos || {}).reduce((n, u) => {
+    const active = u.active || [];
+    // 統計は「動けるタスク」= 確定予定 + 直近タスク (待ちは除く)
+    return n + active.filter(t => t.kind !== 'waiting').length;
+  }, 0);
+  document.getElementById('stat-todos').textContent = allTodos;
+  document.getElementById('stat-delegations').textContent = (data.delegations || []).filter(d => !['done', '完了', '✅完了'].includes(d.status)).length;
+
+  // 状態管理
+  const state = {
+    currentUser: data.current_user,
+    viewMode: 'home',       // 'home' | 'list' | 'detail'
+    currentCategory: null,
+    currentFile: null,
+  };
+
+  // ============================
+  // 状態 ↔ URLハッシュ 同期
+  // (30秒ごとの自動リロードでビュー状態を維持するため)
+  // ============================
+  function updateHash() {
+    const params = new URLSearchParams();
+    params.set('v', state.viewMode);
+    if (state.currentUser) params.set('u', state.currentUser);
+    if (state.currentCategory) params.set('c', state.currentCategory);
+    if (state.currentFile && state.currentFile.path) params.set('p', state.currentFile.path);
+    history.replaceState(null, '', '#' + params.toString());
+  }
+
+  function loadFromHash() {
+    const hash = window.location.hash.replace(/^#/, '');
+    if (!hash) return;
+    const params = new URLSearchParams(hash);
+    const view = params.get('v');
+    const user = params.get('u');
+    const cat = params.get('c');
+    const path = params.get('p');
+
+    if (user && (data.users || []).find(u => u.slug === user)) {
+      state.currentUser = user;
+    }
+    if (view === 'list' && cat) {
+      state.viewMode = 'list';
+      state.currentCategory = cat;
+    } else if (view === 'detail' && cat && path) {
+      state.viewMode = 'detail';
+      state.currentCategory = cat;
+      const files = (data.files || {})[cat] || [];
+      const file = files.find(f => f.path === path);
+      if (file) {
+        state.currentFile = file;
+      } else {
+        // ファイルが見つからなければ一覧に戻す
+        state.viewMode = 'list';
+        state.currentFile = null;
+      }
+    } else if (view === 'home') {
+      state.viewMode = 'home';
+      state.currentCategory = null;
+      state.currentFile = null;
+    }
+  }
+
+  // ユーザー切替
+  const userList = document.getElementById('user-list');
+  (data.users || []).forEach(u => {
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.className = 'nav-btn';
+    if (u.slug === state.currentUser) btn.classList.add('active');
+    btn.dataset.user = u.slug;
+    btn.innerHTML = `<span>${u.slug === state.currentUser ? '●' : '○'}</span><span>${escapeHtml(u.name)}</span><span class="text-xs text-gray-400">${escapeHtml(u.role)}</span>`;
+    btn.addEventListener('click', () => {
+      state.currentUser = u.slug;
+      // ボタン装飾更新
+      document.querySelectorAll('#user-list .nav-btn').forEach(b => {
+        const isActive = b.dataset.user === u.slug;
+        b.classList.toggle('active', isActive);
+        const dot = b.querySelector('span');
+        if (dot) dot.textContent = isActive ? '●' : '○';
+      });
+      render();
+    });
+    li.appendChild(btn);
+    userList.appendChild(li);
+  });
+
+  // メインナビ (ホーム + カテゴリ)
+  const mainNav = document.getElementById('main-nav');
+  // ホームボタンのクリックハンドラ
+  mainNav.querySelector('[data-view="home"]').addEventListener('click', () => {
+    state.viewMode = 'home';
+    state.currentCategory = null;
+    state.currentFile = null;
+    updateNavActive();
+    render();
+  });
+
+  // カテゴリ表示順 (アイコン付き)
+  const categoryIcons = {
+    '会社情報': '🏢',
+    'プロジェクト': '📂',
+    'クライアント': '👥',
+    '請求書': '💰',
+    '見積書': '📑',
+    '経理': '💴',
+    '営業': '📞',
+    'マーケティング': '📣',
+    '開発': '💻',
+    '人事': '👔',
+    'クリエイティブ': '🎨',
+    '秘書室': '📝',
+    '部署': '🗂️',
+    'メモ': '📓',
+    'レビュー': '📊',
+  };
+
+  // サイドバーから隠すカテゴリ (データは残るが、別UIから参照される)
+  const HIDDEN_CATEGORIES = new Set(['クライアント']);
+  Object.entries(data.files || {}).forEach(([category, files]) => {
+    if (HIDDEN_CATEGORIES.has(category)) return;
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.className = 'nav-btn';
+    btn.dataset.category = category;
+    const icon = categoryIcons[category] || '📁';
+    btn.innerHTML = `<span>${icon}</span><span>${escapeHtml(category)}</span><span class="count">${(files || []).length}</span>`;
+    btn.addEventListener('click', () => {
+      state.viewMode = 'list';
+      state.currentCategory = category;
+      state.currentFile = null;
+      updateNavActive();
+      render();
+    });
+    li.appendChild(btn);
+    mainNav.appendChild(li);
+  });
+
+  function updateNavActive() {
+    document.querySelectorAll('#main-nav .nav-btn').forEach(b => {
+      const isActive =
+        (state.viewMode === 'home' && b.dataset.view === 'home') ||
+        (state.viewMode !== 'home' && b.dataset.category === state.currentCategory);
+      b.classList.toggle('active', isActive);
+    });
+  }
+
+  // 初期描画 (URLハッシュから状態復元)
+  loadFromHash();
+  // ユーザー切替ボタンの表示更新 (ハッシュからユーザー復元時)
+  document.querySelectorAll('#user-list .nav-btn').forEach(b => {
+    const isActive = b.dataset.user === state.currentUser;
+    b.classList.toggle('active', isActive);
+    const dot = b.querySelector('span');
+    if (dot) dot.textContent = isActive ? '●' : '○';
+  });
+  updateNavActive();
+  render();
+
+  // ハッシュ変更を監視 (戻る/進むボタン対応)
+  window.addEventListener('hashchange', () => {
+    loadFromHash();
+    document.querySelectorAll('#user-list .nav-btn').forEach(b => {
+      const isActive = b.dataset.user === state.currentUser;
+      b.classList.toggle('active', isActive);
+      const dot = b.querySelector('span');
+      if (dot) dot.textContent = isActive ? '●' : '○';
+    });
+    updateNavActive();
+    render();
+  });
+
+  // ============================
+  // スマート自動更新
+  // ホームビューにいて、かつ直近のユーザー操作から一定時間経過した場合のみ
+  // ページをリロードして最新データを取得する
+  // (ファイル閲覧中はリロードしない)
+  // ============================
+  const AUTO_REFRESH_INTERVAL_MS = 60 * 1000;   // 60秒ごとにチェック
+  const IDLE_REQUIRED_MS = 15 * 1000;           // 15秒間操作がなければ安全にリロード可
+  let lastInteractionAt = Date.now();
+  ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'].forEach(evt => {
+    window.addEventListener(evt, () => { lastInteractionAt = Date.now(); }, { passive: true });
+  });
+  setInterval(() => {
+    if (state.viewMode !== 'home') return;                     // ホーム以外は触らない
+    if (document.hidden) return;                               // 非表示タブはスキップ
+    if (Date.now() - lastInteractionAt < IDLE_REQUIRED_MS) return; // 操作中は避ける
+    location.reload();
+  }, AUTO_REFRESH_INTERVAL_MS);
+
+  // ============================
+  // レンダリング
+  // ============================
+  function render() {
+    // 状態をURLハッシュに保存 (リロード時の復元用)
+    updateHash();
+
+    const root = document.getElementById('main-content');
+    root.innerHTML = '';
+    root.classList.remove('fade-in');
+    void root.offsetWidth; // reflow for animation
+    root.classList.add('fade-in');
+
+    if (state.viewMode === 'home') {
+      renderHome(root);
+    } else if (state.viewMode === 'list') {
+      renderList(root);
+    } else if (state.viewMode === 'detail') {
+      renderDetail(root);
+    }
+  }
+
+  function renderHome(root) {
+    const user = (data.users || []).find(u => u.slug === state.currentUser);
+    const userName = user ? user.name : state.currentUser;
+
+    // 2カラムレイアウト (本文 + 右TOC)
+    const flexWrap = document.createElement('div');
+    flexWrap.className = 'flex gap-6';
+
+    const mainCol = document.createElement('div');
+    mainCol.className = 'flex-1 min-w-0';
+
+    // TOC 表示切り替えツールバー (画面右寄せ、lg以上のみ表示)
+    const tocToolbar = document.createElement('div');
+    tocToolbar.className = 'hidden lg:flex justify-end mb-2';
+    tocToolbar.appendChild(createTocToggle());
+    mainCol.appendChild(tocToolbar);
+
+    // TODO
+    const todos = normalizeTodos((data.todos || {})[state.currentUser]);
+    const todoCard = createCard('📋 TODO', `(${userName})`);
+    const todoBody = todoCard.body;
+    if ((todos.active || []).length === 0 && (todos.completed || []).length === 0) {
+      todoBody.innerHTML = '<p class="text-sm text-gray-400 italic">登録されたタスクはありません</p>';
+    } else {
+      todoBody.appendChild(buildTodoTable(todos));
+    }
+    mainCol.appendChild(todoCard.el);
+
+    // 委任中
+    const myDelegations = (data.delegations || []).filter(d => d.from === state.currentUser && !['done', '完了', '✅完了'].includes(d.status));
+    const delCard = createCard('📤 あなたが依頼中');
+    if (myDelegations.length === 0) {
+      delCard.body.innerHTML = '<p class="text-sm text-gray-400 italic">依頼中のタスクはありません</p>';
+    } else {
+      delCard.body.appendChild(buildDelegationTable(myDelegations));
+    }
+    mainCol.appendChild(delCard.el);
+
+    // バックログ (本日中ではないが、いずれやるタスク)
+    const myBacklog = (data.backlog || {})[state.currentUser] || { high: [], normal: [], low: [], someday: [] };
+    const totalBacklog = (myBacklog.high || []).length + (myBacklog.normal || []).length + (myBacklog.low || []).length + (myBacklog.someday || []).length;
+    const backlogCard = createCard('📥 バックログ', totalBacklog > 0 ? `${totalBacklog}件` : '');
+    if (totalBacklog === 0) {
+      backlogCard.body.innerHTML = '<p class="text-sm text-gray-400 italic">バックログは空です</p>';
+    } else {
+      backlogCard.body.appendChild(buildBacklogView(myBacklog));
+    }
+    mainCol.appendChild(backlogCard.el);
+
+    // 経理サマリー
+    if (data.expenses) {
+      const expenses = data.expenses;
+      const curMonth = expenses.current_month || '';
+      const curMonthData = (expenses.months || {})[curMonth] || { total: 0, count: 0, by_account: {} };
+      const expCard = createCard('💴 経理サマリー', curMonth ? `${curMonth} 現在` : '');
+      expCard.body.appendChild(buildExpenseSummary(expenses, curMonthData));
+      mainCol.appendChild(expCard.el);
+    }
+
+    // TOC 生成 (各カードの h2 を拾う)
+    const headings = mainCol.querySelectorAll('h2');
+    const tocCol = document.createElement('aside');
+    tocCol.className = 'w-52 flex-shrink-0 hidden lg:block toc-col';
+    if (headings.length > 0) {
+      const toc = document.createElement('nav');
+      toc.className = 'toc-sidebar';
+      const tocTitle = document.createElement('div');
+      tocTitle.className = 'text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-3';
+      tocTitle.textContent = '目次';
+      toc.appendChild(tocTitle);
+
+      headings.forEach((h, i) => {
+        const text = h.textContent;
+        const id = 'home-sec-' + i;
+        h.id = id;
+        h.style.scrollMarginTop = '80px';
+        const link = document.createElement('a');
+        link.href = '#' + id;
+        link.className = 'toc-link h2';
+        link.textContent = text;
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        toc.appendChild(link);
+      });
+      tocCol.appendChild(toc);
+    }
+
+    flexWrap.appendChild(mainCol);
+    flexWrap.appendChild(tocCol);
+    root.appendChild(flexWrap);
+  }
+
+  function buildExpenseSummary(expenses, curMonth) {
+    const wrap = document.createElement('div');
+
+    // 上段: 当月合計 + 件数 + 役員立替金の KPI
+    const kpiRow = document.createElement('div');
+    kpiRow.className = 'grid grid-cols-2 md:grid-cols-4 gap-3 mb-4';
+
+    // 当月合計
+    const kpi1 = document.createElement('div');
+    kpi1.className = 'bg-blue-50 border border-blue-100 rounded-lg p-3';
+    kpi1.innerHTML = `
+      <div class="text-xs text-blue-700 mb-0.5">当月合計</div>
+      <div class="text-xl font-bold text-blue-900">¥${(curMonth.total || 0).toLocaleString('ja-JP')}</div>
+      <div class="text-xs text-blue-600 mt-0.5">${curMonth.count || 0} 件</div>
+    `;
+    kpiRow.appendChild(kpi1);
+
+    // 総件数
+    const kpi2 = document.createElement('div');
+    kpi2.className = 'bg-gray-50 border border-gray-200 rounded-lg p-3';
+    kpi2.innerHTML = `
+      <div class="text-xs text-gray-500 mb-0.5">累計件数</div>
+      <div class="text-xl font-bold text-gray-900">${expenses.total_count || 0}</div>
+      <div class="text-xs text-gray-500 mt-0.5">登録レシート</div>
+    `;
+    kpiRow.appendChild(kpi2);
+
+    // 役員立替金（未精算）
+    const advances = expenses.advances || {};
+    const advanceKeys = Object.keys(advances);
+    const totalAdvance = advanceKeys.reduce((n, k) => n + (advances[k].balance || 0), 0);
+    const kpi3 = document.createElement('div');
+    kpi3.className = totalAdvance > 0
+      ? 'bg-rose-50 border border-rose-100 rounded-lg p-3'
+      : 'bg-gray-50 border border-gray-200 rounded-lg p-3';
+    kpi3.innerHTML = `
+      <div class="text-xs ${totalAdvance > 0 ? 'text-rose-700' : 'text-gray-500'} mb-0.5">未精算 立替金</div>
+      <div class="text-xl font-bold ${totalAdvance > 0 ? 'text-rose-900' : 'text-gray-900'}">¥${totalAdvance.toLocaleString('ja-JP')}</div>
+      <div class="text-xs ${totalAdvance > 0 ? 'text-rose-600' : 'text-gray-500'} mt-0.5">${advanceKeys.length} 名分</div>
+    `;
+    kpiRow.appendChild(kpi3);
+
+    // 最終更新
+    const kpi4 = document.createElement('div');
+    kpi4.className = 'bg-gray-50 border border-gray-200 rounded-lg p-3';
+    const gen = expenses.generated_at || '';
+    const genShort = gen ? gen.replace('T', ' ').substring(0, 16) : '-';
+    kpi4.innerHTML = `
+      <div class="text-xs text-gray-500 mb-0.5">台帳同期</div>
+      <div class="text-sm font-semibold text-gray-900 mt-1">${escapeHtml(genShort)}</div>
+      <div class="text-xs text-gray-500 mt-0.5">Sheets 由来</div>
+    `;
+    kpiRow.appendChild(kpi4);
+
+    wrap.appendChild(kpiRow);
+
+    // 立替金の内訳（残高がある場合のみ）
+    if (totalAdvance > 0) {
+      const advSection = document.createElement('div');
+      advSection.className = 'mb-4 p-3 bg-rose-50/40 border border-rose-100 rounded';
+      const advTitle = document.createElement('div');
+      advTitle.className = 'text-xs font-semibold text-rose-700 mb-1.5';
+      advTitle.textContent = '💳 未精算 立替金の内訳';
+      advSection.appendChild(advTitle);
+      const advList = document.createElement('div');
+      advList.className = 'space-y-1';
+      advanceKeys.sort().forEach(k => {
+        const row = document.createElement('div');
+        row.className = 'flex justify-between text-sm';
+        row.innerHTML = `
+          <span class="text-gray-700">${escapeHtml(k)}</span>
+          <span class="font-semibold text-rose-700">¥${(advances[k].balance || 0).toLocaleString('ja-JP')} <span class="text-xs text-gray-500">(${advances[k].count}件)</span></span>
+        `;
+        advList.appendChild(row);
+      });
+      advSection.appendChild(advList);
+      wrap.appendChild(advSection);
+    }
+
+    // 勘定科目別の内訳（当月）
+    const byAccount = curMonth.by_account || {};
+    const accountKeys = Object.keys(byAccount).sort((a, b) => byAccount[b] - byAccount[a]);
+    if (accountKeys.length > 0) {
+      const accSection = document.createElement('div');
+      accSection.className = 'mb-4';
+      const accTitle = document.createElement('div');
+      accTitle.className = 'text-xs font-semibold text-gray-500 mb-1.5';
+      accTitle.textContent = '📊 当月の勘定科目別';
+      accSection.appendChild(accTitle);
+      const accGrid = document.createElement('div');
+      accGrid.className = 'grid grid-cols-1 md:grid-cols-2 gap-1';
+      const maxVal = byAccount[accountKeys[0]] || 1;
+      accountKeys.forEach(k => {
+        const amt = byAccount[k];
+        const pct = Math.round((amt / maxVal) * 100);
+        const row = document.createElement('div');
+        row.className = 'relative text-sm px-2 py-1 rounded overflow-hidden';
+        row.innerHTML = `
+          <div class="absolute inset-0 bg-blue-100/60" style="width:${pct}%"></div>
+          <div class="relative flex justify-between">
+            <span class="text-gray-700">${escapeHtml(k)}</span>
+            <span class="font-semibold text-gray-900">¥${amt.toLocaleString('ja-JP')}</span>
+          </div>
+        `;
+        accGrid.appendChild(row);
+      });
+      accSection.appendChild(accGrid);
+      wrap.appendChild(accSection);
+    }
+
+    // 直近の取引
+    const recent = expenses.recent || [];
+    if (recent.length > 0) {
+      const recentSection = document.createElement('div');
+      const recentTitle = document.createElement('div');
+      recentTitle.className = 'text-xs font-semibold text-gray-500 mb-1.5';
+      recentTitle.textContent = `🧾 直近の取引 (${recent.length}件)`;
+      recentSection.appendChild(recentTitle);
+
+      const table = document.createElement('table');
+      table.className = 'w-full text-xs';
+      table.innerHTML = '<thead><tr class="border-b border-gray-200 text-left text-gray-500"><th class="py-1.5 font-medium w-20">取引日</th><th class="py-1.5 font-medium">取引先</th><th class="py-1.5 font-medium w-24">科目</th><th class="py-1.5 font-medium w-24 text-right">金額</th></tr></thead>';
+      const tbody = document.createElement('tbody');
+      recent.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-gray-100';
+        tr.innerHTML = `
+          <td class="py-1.5 text-gray-600">${escapeHtml(r.transaction_date || '')}</td>
+          <td class="py-1.5 text-gray-800 truncate" title="${escapeHtml(r.description || '')}">${escapeHtml(r.vendor || '')}</td>
+          <td class="py-1.5"><span class="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded">${escapeHtml(r.debit_account || '')}</span></td>
+          <td class="py-1.5 text-right font-semibold text-gray-900">¥${(r.amount_total || 0).toLocaleString('ja-JP')}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      recentSection.appendChild(table);
+      wrap.appendChild(recentSection);
+    }
+
+    if (accountKeys.length === 0 && recent.length === 0) {
+      const empty = document.createElement('p');
+      empty.className = 'text-sm text-gray-400 italic';
+      empty.textContent = 'まだ経費登録はありません';
+      wrap.appendChild(empty);
+    }
+
+    return wrap;
+  }
+
+  function buildBacklogView(backlog) {
+    const wrap = document.createElement('div');
+    const groups = [
+      { key: 'high', label: '高優先度', icon: '🔴', items: backlog.high || [] },
+      { key: 'normal', label: '通常優先度', icon: '🟡', items: backlog.normal || [] },
+      { key: 'low', label: '低優先度', icon: '🟢', items: backlog.low || [] },
+      { key: 'someday', label: 'いつかやる', icon: '⚪', items: backlog.someday || [] },
+    ];
+    groups.forEach(g => {
+      if (g.items.length === 0) return;
+      const section = document.createElement('div');
+      section.className = 'mb-3 last:mb-0';
+      const title = document.createElement('div');
+      title.className = 'text-xs font-semibold text-gray-500 mb-1.5 flex items-center gap-1.5';
+      title.innerHTML = `<span>${g.icon}</span><span>${g.label}</span><span class="text-gray-400">(${g.items.length})</span>`;
+      section.appendChild(title);
+      const list = document.createElement('ul');
+      list.className = 'space-y-1';
+      g.items.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'text-sm text-gray-700 px-3 py-1.5 bg-gray-50 rounded border border-gray-100 flex items-center gap-2';
+        const taskText = (typeof item === 'string') ? item : item.task;
+        const memo = (typeof item === 'object' && item.memo) ? item.memo : '';
+        const when = (typeof item === 'object' && item.when) ? item.when : '';
+        li.innerHTML = `
+          <span class="flex-1">${escapeHtml(taskText)}</span>
+          ${memo ? `<span class="text-xs text-gray-500">${escapeHtml(memo)}</span>` : ''}
+          ${when ? `<span class="text-xs text-blue-600">${escapeHtml(when)}</span>` : ''}
+        `;
+        list.appendChild(li);
+      });
+      section.appendChild(list);
+      wrap.appendChild(section);
+    });
+    return wrap;
+  }
+
+  function renderList(root) {
+    const category = state.currentCategory;
+    if (category === '請求書') {
+      return renderInvoiceList(root);
+    }
+    if (category === '見積書') {
+      return renderEstimateList(root);
+    }
+    const rawFiles = (data.files || {})[category] || [];
+    const files = rawFiles.filter(f => !f.divider);
+
+    // パンくず
+    const crumb = document.createElement('div');
+    crumb.className = 'breadcrumb';
+    crumb.innerHTML = `<a data-action="home">🏠 ホーム</a><span>›</span><span class="font-semibold text-gray-700">${escapeHtml(category)}</span>`;
+    crumb.querySelector('[data-action="home"]').addEventListener('click', () => {
+      state.viewMode = 'home'; state.currentCategory = null; updateNavActive(); render();
+    });
+    root.appendChild(crumb);
+
+    // タイトル
+    const title = document.createElement('h2');
+    title.className = 'text-xl font-bold mb-4 text-gray-900';
+    const icon = ({'会社情報':'🏢','プロジェクト':'📂','クライアント':'👥','請求書':'💰','経理':'💴','営業':'📞','マーケティング':'📣','開発':'💻','人事':'👔','クリエイティブ':'🎨','秘書室':'📝','部署':'🗂️','メモ':'📓','レビュー':'📊'})[category] || '📁';
+    title.innerHTML = `<span class="mr-2">${icon}</span>${escapeHtml(category)} <span class="text-sm font-normal text-gray-400 ml-2">${files.length}件</span>`;
+    root.appendChild(title);
+
+    // ファイルリスト
+    if (files.length === 0) {
+      const empty = document.createElement('p');
+      empty.className = 'text-sm text-gray-400 italic';
+      empty.textContent = 'このカテゴリにはまだファイルがありません';
+      root.appendChild(empty);
+      return;
+    }
+
+    // divider マーカーがあれば、明示的にセクション分割
+    const hasDividers = rawFiles.some(f => f.divider);
+    if (hasDividers) {
+      let current = null;
+      const sections = [];
+      rawFiles.forEach(f => {
+        if (f.divider) {
+          current = { label: f.divider, icon: f.icon || '📁', items: [] };
+          sections.push(current);
+        } else {
+          if (!current) {
+            current = { label: '', icon: '', items: [] };
+            sections.push(current);
+          }
+          current.items.push(f);
+        }
+      });
+      sections.forEach(sec => {
+        if (sec.items.length === 0) return;
+        const section = document.createElement('div');
+        section.className = 'mb-6';
+        if (sec.label) {
+          const header = document.createElement('h3');
+          header.className = 'text-base font-semibold text-gray-700 mb-3 flex items-center gap-2 pb-1.5 border-b border-gray-200';
+          header.innerHTML = `<span>${sec.icon}</span><span>${escapeHtml(sec.label)}</span><span class="text-xs font-normal text-gray-400">(${sec.items.length})</span>`;
+          section.appendChild(header);
+        }
+        const grid = document.createElement('div');
+        grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3';
+        sec.items.forEach(f => grid.appendChild(buildFileCard(f)));
+        section.appendChild(grid);
+        root.appendChild(section);
+      });
+      return;
+    }
+
+    // frontmatter の client フィールドを使ってグルーピング判定
+    const filesWithMeta = files.map(f => {
+      const content = (data.files_content || {})[f.path];
+      let client = null;
+      let project = null;
+      if (content) {
+        const parsed = parseFrontmatter(content);
+        client = parsed.meta.client || null;
+        project = parsed.meta.project || null;
+      }
+      return { file: f, client, project };
+    });
+
+    const withClient = filesWithMeta.filter(x => x.client).length;
+    // 半数以上が client を持ち、かつ複数件あるならグルーピング表示
+    if (withClient >= files.length * 0.5 && files.length > 1) {
+      const groups = {};
+      filesWithMeta.forEach(({ file, client, project }) => {
+        const key = client || '(その他)';
+        if (!groups[key]) groups[key] = [];
+        groups[key].push({ file, project });
+      });
+
+      Object.entries(groups)
+        .sort(([a], [b]) => {
+          // 「自社プロジェクト」を最上位に固定
+          if (a === '自社プロジェクト') return -1;
+          if (b === '自社プロジェクト') return 1;
+          return a.localeCompare(b, 'ja');
+        })
+        .forEach(([client, clientItems]) => {
+          const section = document.createElement('div');
+          section.className = 'mb-12 last:mb-0';
+
+          const clientStorageKey = `totono-collapsed:${category}:${client}`;
+          const clientCollapsed = localStorage.getItem(clientStorageKey) === '1';
+
+          const header = document.createElement('h3');
+          header.className = 'text-lg font-bold text-gray-800 mb-5 flex items-center gap-2 pb-2 border-b-2 border-gray-300 cursor-pointer select-none hover:text-blue-700';
+          const chevron = document.createElement('span');
+          chevron.className = 'text-xs text-gray-400 transition-transform inline-block';
+          chevron.textContent = '▼';
+          chevron.style.transform = clientCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+          header.appendChild(chevron);
+          const buildingIcon = document.createElement('span');
+          buildingIcon.textContent = '🏢';
+          header.appendChild(buildingIcon);
+          const clientLabel = document.createElement('span');
+          clientLabel.textContent = client;
+          header.appendChild(clientLabel);
+
+          // 対応するクライアント詳細ファイルがあれば「クライアント詳細」ボタンを設置
+          const clientFiles = (data.files || {})['クライアント'] || [];
+          const clientFile = clientFiles.find(f => f.name === client);
+          if (clientFile) {
+            const infoBtn = document.createElement('button');
+            infoBtn.className = 'ml-2 text-xs font-normal px-2 py-0.5 rounded border border-gray-300 bg-white text-gray-600 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 transition-colors';
+            infoBtn.title = '会社情報を見る';
+            infoBtn.textContent = 'クライアント詳細';
+            infoBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              state.viewMode = 'detail';
+              state.currentCategory = 'プロジェクト';
+              state.currentFile = clientFile;
+              render();
+            });
+            header.appendChild(infoBtn);
+          }
+
+          const countLabel = document.createElement('span');
+          countLabel.className = 'text-xs font-normal text-gray-400 ml-1';
+          countLabel.textContent = `(${clientItems.length})`;
+          header.appendChild(countLabel);
+          section.appendChild(header);
+
+          const clientBody = document.createElement('div');
+          clientBody.className = 'pl-4';
+          if (clientCollapsed) clientBody.style.display = 'none';
+
+          // クライアント内をプロジェクトでサブグルーピング
+          const projectGroups = {};
+          clientItems.forEach(({ file, project }) => {
+            const pkey = project || '(その他)';
+            if (!projectGroups[pkey]) projectGroups[pkey] = [];
+            projectGroups[pkey].push(file);
+          });
+
+          Object.entries(projectGroups)
+            .sort(([a], [b]) => a.localeCompare(b, 'ja'))
+            .forEach(([project, projectFiles]) => {
+              const projSection = document.createElement('div');
+              projSection.className = 'mb-7 last:mb-0';
+
+              const projStorageKey = `totono-collapsed:${category}:${client}:${project}`;
+              const projCollapsed = localStorage.getItem(projStorageKey) === '1';
+
+              const projHeader = document.createElement('div');
+              projHeader.className = 'text-sm font-semibold text-gray-600 mb-3 flex items-center gap-1.5 cursor-pointer select-none hover:text-blue-700';
+              const projChevron = document.createElement('span');
+              projChevron.className = 'text-[10px] text-gray-400 transition-transform inline-block';
+              projChevron.textContent = '▼';
+              projChevron.style.transform = projCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+              projHeader.appendChild(projChevron);
+              const folderIcon = document.createElement('span');
+              folderIcon.textContent = '📂';
+              projHeader.appendChild(folderIcon);
+              const projLabel = document.createElement('span');
+              projLabel.textContent = project;
+              projHeader.appendChild(projLabel);
+              const projCount = document.createElement('span');
+              projCount.className = 'text-xs font-normal text-gray-400 ml-0.5';
+              projCount.textContent = `(${projectFiles.length})`;
+              projHeader.appendChild(projCount);
+              projSection.appendChild(projHeader);
+
+              const projGrid = document.createElement('div');
+              projGrid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2';
+              if (projCollapsed) projGrid.style.display = 'none';
+              projectFiles
+                .sort((a, b) => a.name.localeCompare(b.name, 'ja'))
+                .forEach(f => {
+                  projGrid.appendChild(buildFileCard(f));
+                });
+              projSection.appendChild(projGrid);
+
+              projHeader.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isHidden = projGrid.style.display === 'none';
+                projGrid.style.display = isHidden ? '' : 'none';
+                projChevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
+                localStorage.setItem(projStorageKey, isHidden ? '0' : '1');
+              });
+
+              clientBody.appendChild(projSection);
+            });
+
+          section.appendChild(clientBody);
+
+          header.addEventListener('click', () => {
+            const isHidden = clientBody.style.display === 'none';
+            clientBody.style.display = isHidden ? '' : 'none';
+            chevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
+            localStorage.setItem(clientStorageKey, isHidden ? '0' : '1');
+          });
+
+          root.appendChild(section);
+        });
+      return;
+    }
+
+    // フラットグリッド (デフォルト)
+    const grid = document.createElement('div');
+    grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3';
+    files.forEach(f => {
+      grid.appendChild(buildFileCard(f));
+    });
+    root.appendChild(grid);
+  }
+
+  // ファイルパスから種別を判定 (アイコン・色付きバッジ)
+  function detectFileType(path) {
+    const basename = path.split('/').pop().replace(/\.md$/, '');
+    const parts = path.split('/');
+    if (/^README$/i.test(basename) || /概要|アカウントコンセプト/.test(basename)) {
+      return { icon: '📘', label: '概要', badge: 'bg-indigo-100 text-indigo-700' };
+    }
+    const folderRules = [
+      { match: /議事録|meeting|mtg/i,    icon: '🗣', label: '議事録', badge: 'bg-amber-100 text-amber-700'   },
+      { match: /契約|contract|業務委託/i,  icon: '📜', label: '契約',   badge: 'bg-rose-100 text-rose-700'     },
+      { match: /設計|design/i,           icon: '🛠', label: '設計',   badge: 'bg-blue-100 text-blue-700'     },
+      { match: /提案|proposal/i,         icon: '💡', label: '提案',   badge: 'bg-yellow-100 text-yellow-700' },
+      { match: /報告|report/i,           icon: '📊', label: '報告',   badge: 'bg-green-100 text-green-700'   },
+      { match: /要件|requirement|spec/i, icon: '📋', label: '要件',   badge: 'bg-purple-100 text-purple-700' },
+      { match: /調査|research/i,         icon: '🔍', label: '調査',   badge: 'bg-cyan-100 text-cyan-700'     },
+      { match: /運用|operation/i,        icon: '⚙️', label: '運用',   badge: 'bg-gray-200 text-gray-700'     },
+    ];
+    for (const part of parts) {
+      for (const rule of folderRules) {
+        if (rule.match.test(part)) return { icon: rule.icon, label: rule.label, badge: rule.badge };
+      }
+    }
+    if (/議事録|MTG|mtg/i.test(basename)) return { icon: '🗣', label: '議事録', badge: 'bg-amber-100 text-amber-700' };
+    if (/契約|覚書/.test(basename))       return { icon: '📜', label: '契約',   badge: 'bg-rose-100 text-rose-700'   };
+    if (/決定|kickoff|事業立ち上げ|ブランディング|戦略|アーキテクチャ|Phase/.test(basename)) {
+      return { icon: '⚖️', label: '判断', badge: 'bg-violet-100 text-violet-700' };
+    }
+    return { icon: '📄', label: '文書', badge: 'bg-slate-100 text-slate-600' };
+  }
+
+  function buildFileCard(f) {
+    const card = document.createElement('div');
+    card.className = 'file-card';
+    const t = detectFileType(f.path);
+    card.innerHTML = `
+      <div class="flex items-center gap-2.5">
+        <span class="text-base flex-shrink-0 opacity-80">${t.icon}</span>
+        <span class="flex-1 min-w-0 text-sm font-semibold text-gray-800 truncate">${escapeHtml(f.name)}</span>
+        <span class="type-badge ${t.badge}">${escapeHtml(t.label)}</span>
+      </div>
+    `;
+    card.addEventListener('click', () => {
+      state.viewMode = 'detail';
+      state.currentFile = f;
+      render();
+    });
+    return card;
+  }
+
+  // ============================
+  // 請求書専用ビュー
+  // ============================
+  function parseInvoiceMeta(f) {
+    const content = (data.files_content || {})[f.path] || '';
+    const { meta } = parseFrontmatter(content);
+    const amount = parseInt((meta.amount_incl_tax || '').toString().replace(/[^0-9-]/g, ''), 10) || 0;
+    const issueDate = meta.issue_date || '';
+    const issueMonth = issueDate.length >= 7 ? issueDate.substring(0, 7) : ''; // YYYY-MM
+    return { file: f, meta, amount, issueMonth };
+  }
+
+  function computeInvoiceStatus(meta) {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (meta.paid_date) return { key: 'paid', label: '✅ 入金済み', tone: 'bg-green-100 text-green-800' };
+    if (meta.status === '発行予定' || meta.status === 'draft') {
+      return { key: 'draft', label: '📝 発行予定', tone: 'bg-amber-100 text-amber-800' };
+    }
+    if (meta.due_date) {
+      const due = new Date(meta.due_date + 'T00:00:00+09:00');
+      if (due < today) return { key: 'overdue', label: '🚨 期日超過', tone: 'bg-red-100 text-red-800' };
+    }
+    return { key: 'waiting', label: '⏳ 入金待ち', tone: 'bg-blue-100 text-blue-800' };
+  }
+
+  function computeInvoiceKpis(invoices) {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const curMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    const k = {
+      draft: { total: 0, count: 0 },
+      waiting: { total: 0, count: 0 },
+      overdue: { total: 0, count: 0 },
+      paidThisMonth: { total: 0, count: 0 }
+    };
+    invoices.forEach(inv => {
+      const st = computeInvoiceStatus(inv.meta);
+      if (st.key === 'draft') { k.draft.total += inv.amount; k.draft.count++; }
+      else if (st.key === 'waiting') { k.waiting.total += inv.amount; k.waiting.count++; }
+      else if (st.key === 'overdue') { k.overdue.total += inv.amount; k.overdue.count++; }
+      if (inv.meta.paid_date && inv.meta.paid_date.substring(0, 7) === curMonth) {
+        k.paidThisMonth.total += inv.amount; k.paidThisMonth.count++;
+      }
+    });
+    return k;
+  }
+
+  function buildInvoiceKpiRow(kpis) {
+    const row = document.createElement('div');
+    row.className = 'grid grid-cols-2 md:grid-cols-4 gap-3 mb-4';
+    const card = (bg, border, textTone, label, value, sub) => {
+      const el = document.createElement('div');
+      el.className = `${bg} border ${border} rounded-lg p-3`;
+      el.innerHTML = `
+        <div class="text-xs ${textTone} mb-0.5">${label}</div>
+        <div class="text-xl font-bold ${textTone.replace('700','900')}">¥${value.toLocaleString('ja-JP')}</div>
+        <div class="text-xs ${textTone.replace('700','600')} mt-0.5">${sub}</div>
+      `;
+      return el;
+    };
+    row.appendChild(card('bg-amber-50', 'border-amber-100', 'text-amber-700', '📝 発行予定', kpis.draft.total, `${kpis.draft.count} 件`));
+    row.appendChild(card('bg-blue-50', 'border-blue-100', 'text-blue-700', '⏳ 入金待ち', kpis.waiting.total, `${kpis.waiting.count} 件`));
+    row.appendChild(card(kpis.overdue.count > 0 ? 'bg-red-50' : 'bg-gray-50', kpis.overdue.count > 0 ? 'border-red-100' : 'border-gray-200', kpis.overdue.count > 0 ? 'text-red-700' : 'text-gray-500', '🚨 期日超過', kpis.overdue.total, `${kpis.overdue.count} 件`));
+    row.appendChild(card('bg-green-50', 'border-green-100', 'text-green-700', '✅ 今月入金', kpis.paidThisMonth.total, `${kpis.paidThisMonth.count} 件`));
+    return row;
+  }
+
+  function buildInvoiceMonthlyChart(invoices) {
+    // 直近6ヶ月
+    const today = new Date();
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      months.push({ key, label: `${d.getMonth() + 1}月`, issued: 0, paid: 0 });
+    }
+    invoices.forEach(inv => {
+      const m = months.find(x => x.key === inv.issueMonth);
+      if (m) {
+        m.issued += inv.amount;
+        if (inv.meta.paid_date) m.paid += inv.amount;
+      }
+    });
+    const maxVal = Math.max(1, ...months.map(m => m.issued));
+
+    const wrap = document.createElement('div');
+    wrap.className = 'bg-white border border-gray-200 rounded-lg p-4 mb-4';
+    const title = document.createElement('div');
+    title.className = 'text-sm font-semibold text-gray-700 mb-3';
+    title.textContent = '📊 月次発行推移 (直近6ヶ月)';
+    wrap.appendChild(title);
+
+    const chart = document.createElement('div');
+    chart.className = 'flex items-end gap-2 h-32 relative';
+    months.forEach(m => {
+      const col = document.createElement('div');
+      col.className = 'flex-1 flex flex-col items-center justify-end gap-1';
+      const pct = (m.issued / maxVal) * 100;
+      const paidPct = m.issued > 0 ? (m.paid / m.issued) * 100 : 0;
+      const bar = document.createElement('div');
+      bar.className = 'w-full rounded-t relative';
+      bar.style.height = `${Math.max(pct, 2)}%`;
+      bar.style.background = m.issued === 0 ? '#f3f4f6' : '#dbeafe';
+      bar.title = `${m.label}: 発行 ¥${m.issued.toLocaleString('ja-JP')} / 入金 ¥${m.paid.toLocaleString('ja-JP')}`;
+      if (m.paid > 0) {
+        const paidBar = document.createElement('div');
+        paidBar.className = 'absolute bottom-0 left-0 right-0 rounded-t';
+        paidBar.style.height = `${paidPct}%`;
+        paidBar.style.background = '#86efac';
+        bar.appendChild(paidBar);
+      }
+      const val = document.createElement('div');
+      val.className = 'text-[10px] text-gray-600 font-semibold whitespace-nowrap';
+      val.textContent = m.issued > 0 ? `¥${Math.round(m.issued / 1000)}k` : '';
+      col.appendChild(val);
+      col.appendChild(bar);
+      const lbl = document.createElement('div');
+      lbl.className = 'text-[11px] text-gray-500';
+      lbl.textContent = m.label;
+      col.appendChild(lbl);
+      chart.appendChild(col);
+    });
+    wrap.appendChild(chart);
+
+    const legend = document.createElement('div');
+    legend.className = 'flex gap-3 mt-3 text-[11px] text-gray-600';
+    legend.innerHTML = '<span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#dbeafe"></span>発行</span><span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#86efac"></span>入金済み</span>';
+    wrap.appendChild(legend);
+
+    return wrap;
+  }
+
+  function buildInvoiceTable(invoices) {
+    const wrap = document.createElement('div');
+    wrap.className = 'bg-white border border-gray-200 rounded-lg overflow-hidden';
+    const table = document.createElement('table');
+    table.className = 'w-full text-sm';
+    table.innerHTML = `
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr class="text-left text-xs text-gray-600">
+          <th class="py-2 px-3 font-semibold w-20">発行月</th>
+          <th class="py-2 px-3 font-semibold">取引先 / 件名</th>
+          <th class="py-2 px-3 font-semibold text-right w-28">金額 (税込)</th>
+          <th class="py-2 px-3 font-semibold w-24">期日</th>
+          <th class="py-2 px-3 font-semibold w-24">入金日</th>
+          <th class="py-2 px-3 font-semibold w-28">ステータス</th>
+        </tr>
+      </thead>
+    `;
+    const tbody = document.createElement('tbody');
+    // 新しい順
+    const sorted = [...invoices].sort((a, b) => (b.issueMonth || '').localeCompare(a.issueMonth || ''));
+    sorted.forEach(inv => {
+      const st = computeInvoiceStatus(inv.meta);
+      const tr = document.createElement('tr');
+      tr.className = 'border-b border-gray-100 hover:bg-blue-50/30 cursor-pointer transition';
+      tr.innerHTML = `
+        <td class="py-2 px-3 text-xs text-gray-600 whitespace-nowrap">${escapeHtml(inv.issueMonth || '-')}</td>
+        <td class="py-2 px-3">
+          <div class="font-semibold text-gray-800">${escapeHtml(inv.meta.client || '-')}</div>
+          <div class="text-xs text-gray-500 truncate">${escapeHtml(inv.file.name || '')}</div>
+        </td>
+        <td class="py-2 px-3 text-right font-mono font-semibold text-gray-900 whitespace-nowrap">¥${inv.amount.toLocaleString('ja-JP')}</td>
+        <td class="py-2 px-3 text-xs text-gray-600 whitespace-nowrap">${escapeHtml(inv.meta.due_date || '-')}</td>
+        <td class="py-2 px-3 text-xs text-gray-600 whitespace-nowrap">${escapeHtml(inv.meta.paid_date || '-')}</td>
+        <td class="py-2 px-3 whitespace-nowrap"><span class="text-xs px-2 py-0.5 rounded font-semibold ${st.tone}">${st.label}</span></td>
+      `;
+      tr.addEventListener('click', () => {
+        state.viewMode = 'detail';
+        state.currentFile = inv.file;
+        render();
+      });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+    return wrap;
+  }
+
+  // ============================
+  // 見積書専用ビュー
+  // ============================
+  function parseEstimateMeta(f) {
+    const content = (data.files_content || {})[f.path] || '';
+    const { meta } = parseFrontmatter(content);
+    const amount = parseInt((meta.amount_incl_tax || '').toString().replace(/[^0-9-]/g, ''), 10) || 0;
+    const issueDate = meta.issue_date || '';
+    const issueMonth = issueDate.length >= 7 ? issueDate.substring(0, 7) : '';
+    return { file: f, meta, amount, issueMonth };
+  }
+
+  function computeEstimateStatus(meta) {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const status = (meta.status || '').toLowerCase();
+    if (status === 'accepted' || status === '受諾') return { key: 'accepted', label: '✅ 受諾', tone: 'bg-green-100 text-green-800' };
+    if (status === 'rejected' || status === '却下') return { key: 'rejected', label: '❌ 却下', tone: 'bg-gray-200 text-gray-700' };
+    if (status === 'expired' || status === '期限切れ') return { key: 'expired', label: '⏰ 期限切れ', tone: 'bg-gray-200 text-gray-700' };
+    if (status === 'draft' || status === '作成中') return { key: 'draft', label: '📝 作成中', tone: 'bg-amber-100 text-amber-800' };
+    // sent or unknown → 回答待ち
+    if (meta.valid_until) {
+      const until = new Date(meta.valid_until + 'T00:00:00+09:00');
+      if (until < today) return { key: 'expired', label: '⏰ 期限切れ', tone: 'bg-gray-200 text-gray-700' };
+    }
+    return { key: 'pending', label: '📤 回答待ち', tone: 'bg-blue-100 text-blue-800' };
+  }
+
+  function computeEstimateKpis(estimates) {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const curMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    const k = {
+      pending: { total: 0, count: 0 },
+      acceptedMonth: { total: 0, count: 0 },
+      lostMonth: { total: 0, count: 0 },
+      winRate: 0,
+      winRateNumerator: 0,
+      winRateDenominator: 0
+    };
+    estimates.forEach(est => {
+      const st = computeEstimateStatus(est.meta);
+      if (st.key === 'pending' || st.key === 'draft') {
+        k.pending.total += est.amount; k.pending.count++;
+      }
+      const respMonth = (est.meta.response_date || '').substring(0, 7);
+      if (st.key === 'accepted') {
+        if (respMonth === curMonth) { k.acceptedMonth.total += est.amount; k.acceptedMonth.count++; }
+        k.winRateNumerator++;
+        k.winRateDenominator++;
+      } else if (st.key === 'rejected' || st.key === 'expired') {
+        if (respMonth === curMonth) { k.lostMonth.total += est.amount; k.lostMonth.count++; }
+        k.winRateDenominator++;
+      }
+    });
+    k.winRate = k.winRateDenominator > 0 ? Math.round((k.winRateNumerator / k.winRateDenominator) * 100) : 0;
+    return k;
+  }
+
+  function buildEstimateKpiRow(kpis) {
+    const row = document.createElement('div');
+    row.className = 'grid grid-cols-2 md:grid-cols-4 gap-3 mb-4';
+    const card = (bg, border, textTone, label, value, sub) => {
+      const el = document.createElement('div');
+      el.className = `${bg} border ${border} rounded-lg p-3`;
+      el.innerHTML = `
+        <div class="text-xs ${textTone} mb-0.5">${label}</div>
+        <div class="text-xl font-bold ${textTone.replace('700','900')}">${value}</div>
+        <div class="text-xs ${textTone.replace('700','600')} mt-0.5">${sub}</div>
+      `;
+      return el;
+    };
+    row.appendChild(card('bg-blue-50', 'border-blue-100', 'text-blue-700', '📤 回答待ち', `¥${kpis.pending.total.toLocaleString('ja-JP')}`, `${kpis.pending.count} 件`));
+    row.appendChild(card('bg-green-50', 'border-green-100', 'text-green-700', '✅ 今月受諾', `¥${kpis.acceptedMonth.total.toLocaleString('ja-JP')}`, `${kpis.acceptedMonth.count} 件`));
+    row.appendChild(card(kpis.lostMonth.count > 0 ? 'bg-rose-50' : 'bg-gray-50', kpis.lostMonth.count > 0 ? 'border-rose-100' : 'border-gray-200', kpis.lostMonth.count > 0 ? 'text-rose-700' : 'text-gray-500', '❌ 今月失注', `¥${kpis.lostMonth.total.toLocaleString('ja-JP')}`, `${kpis.lostMonth.count} 件`));
+    row.appendChild(card('bg-indigo-50', 'border-indigo-100', 'text-indigo-700', '📊 累計受注率', `${kpis.winRate}%`, `${kpis.winRateNumerator} / ${kpis.winRateDenominator} 件`));
+    return row;
+  }
+
+  function buildEstimateTable(estimates) {
+    const wrap = document.createElement('div');
+    wrap.className = 'bg-white border border-gray-200 rounded-lg overflow-hidden';
+    const table = document.createElement('table');
+    table.className = 'w-full text-sm';
+    table.innerHTML = `
+      <thead class="bg-gray-50 border-b border-gray-200">
+        <tr class="text-left text-xs text-gray-600">
+          <th class="py-2 px-3 font-semibold w-20">作成月</th>
+          <th class="py-2 px-3 font-semibold">取引先 / 件名</th>
+          <th class="py-2 px-3 font-semibold text-right w-28">金額 (税込)</th>
+          <th class="py-2 px-3 font-semibold w-24">送付日</th>
+          <th class="py-2 px-3 font-semibold w-24">回答日</th>
+          <th class="py-2 px-3 font-semibold w-28">ステータス</th>
+        </tr>
+      </thead>
+    `;
+    const tbody = document.createElement('tbody');
+    const sorted = [...estimates].sort((a, b) => (b.issueMonth || '').localeCompare(a.issueMonth || ''));
+    sorted.forEach(est => {
+      const st = computeEstimateStatus(est.meta);
+      const tr = document.createElement('tr');
+      tr.className = 'border-b border-gray-100 hover:bg-blue-50/30 cursor-pointer transition';
+      const noteIcon = est.meta.amount_note ? `<span class="ml-1 text-amber-600" title="${escapeHtml(est.meta.amount_note)}">ⓘ</span>` : '';
+      tr.innerHTML = `
+        <td class="py-2 px-3 text-xs text-gray-600 whitespace-nowrap">${escapeHtml(est.issueMonth || '-')}</td>
+        <td class="py-2 px-3">
+          <div class="font-semibold text-gray-800">${escapeHtml(est.meta.client || '-')}</div>
+          <div class="text-xs text-gray-500 truncate">${escapeHtml(est.file.name || '')}</div>
+        </td>
+        <td class="py-2 px-3 text-right font-mono font-semibold text-gray-900 whitespace-nowrap">¥${est.amount.toLocaleString('ja-JP')}${noteIcon}</td>
+        <td class="py-2 px-3 text-xs text-gray-600 whitespace-nowrap">${escapeHtml(est.meta.sent_date || '-')}</td>
+        <td class="py-2 px-3 text-xs text-gray-600 whitespace-nowrap">${escapeHtml(est.meta.response_date || '-')}</td>
+        <td class="py-2 px-3 whitespace-nowrap"><span class="text-xs px-2 py-0.5 rounded font-semibold ${st.tone}">${st.label}</span></td>
+      `;
+      tr.addEventListener('click', () => {
+        state.viewMode = 'detail';
+        state.currentFile = est.file;
+        render();
+      });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+    return wrap;
+  }
+
+  function renderEstimateList(root) {
+    const rawFiles = (data.files || {})['見積書'] || [];
+    const files = rawFiles.filter(f => !f.divider);
+
+    const crumb = document.createElement('div');
+    crumb.className = 'breadcrumb';
+    crumb.innerHTML = `<a data-action="home">🏠 ホーム</a><span>›</span><span class="font-semibold text-gray-700">見積書</span>`;
+    crumb.querySelector('[data-action="home"]').addEventListener('click', () => {
+      state.viewMode = 'home'; state.currentCategory = null; updateNavActive(); render();
+    });
+    root.appendChild(crumb);
+
+    const title = document.createElement('h2');
+    title.className = 'text-xl font-bold mb-4 text-gray-900';
+    title.innerHTML = `<span class="mr-2">📑</span>見積書 <span class="text-sm font-normal text-gray-400 ml-2">${files.length}件</span>`;
+    root.appendChild(title);
+
+    if (files.length === 0) {
+      const empty = document.createElement('p');
+      empty.className = 'text-sm text-gray-400 italic';
+      empty.textContent = '見積書はまだ登録されていません';
+      root.appendChild(empty);
+      return;
+    }
+
+    const estimates = files.map(parseEstimateMeta).filter(est => est.meta.amount_incl_tax !== undefined);
+    const kpis = computeEstimateKpis(estimates);
+
+    root.appendChild(buildEstimateKpiRow(kpis));
+    root.appendChild(buildEstimateTable(estimates));
+  }
+
+  function renderInvoiceList(root) {
+    const rawFiles = (data.files || {})['請求書'] || [];
+    const files = rawFiles.filter(f => !f.divider);
+
+    // パンくず
+    const crumb = document.createElement('div');
+    crumb.className = 'breadcrumb';
+    crumb.innerHTML = `<a data-action="home">🏠 ホーム</a><span>›</span><span class="font-semibold text-gray-700">請求書</span>`;
+    crumb.querySelector('[data-action="home"]').addEventListener('click', () => {
+      state.viewMode = 'home'; state.currentCategory = null; updateNavActive(); render();
+    });
+    root.appendChild(crumb);
+
+    // タイトル
+    const title = document.createElement('h2');
+    title.className = 'text-xl font-bold mb-4 text-gray-900';
+    title.innerHTML = `<span class="mr-2">💰</span>請求書 <span class="text-sm font-normal text-gray-400 ml-2">${files.length}件</span>`;
+    root.appendChild(title);
+
+    if (files.length === 0) {
+      const empty = document.createElement('p');
+      empty.className = 'text-sm text-gray-400 italic';
+      empty.textContent = '請求書はまだ登録されていません';
+      root.appendChild(empty);
+      return;
+    }
+
+    const invoices = files.map(parseInvoiceMeta).filter(inv => inv.meta.amount_incl_tax !== undefined);
+    const kpis = computeInvoiceKpis(invoices);
+
+    root.appendChild(buildInvoiceKpiRow(kpis));
+    root.appendChild(buildInvoiceMonthlyChart(invoices));
+    root.appendChild(buildInvoiceTable(invoices));
+  }
+
+  function renderDetail(root) {
+    const file = state.currentFile;
+    const category = state.currentCategory;
+
+    const content = (data.files_content || {})[file.path];
+
+    // 2カラムレイアウト (本文 + 右TOC) を先に作る
+    const flexWrap = document.createElement('div');
+    flexWrap.className = 'flex gap-6';
+
+    const mainCol = document.createElement('div');
+    mainCol.className = 'flex-1 min-w-0';
+
+    // TOC 表示切り替えツールバー (画面右寄せ、lg以上のみ表示)
+    const tocToolbar = document.createElement('div');
+    tocToolbar.className = 'hidden lg:flex justify-end mb-2';
+    tocToolbar.appendChild(createTocToggle());
+    mainCol.appendChild(tocToolbar);
+
+    // パンくず + 戻る + メタ情報を sticky な1ブロックにまとめる (mainCol 内部に配置 = TOC 列を覆わない)
+    const stickyHeader = document.createElement('div');
+    stickyHeader.className = 'sticky-detail-header pt-4 pb-3 mb-3 border-b border-gray-200';
+
+    const crumb = document.createElement('div');
+    crumb.className = 'breadcrumb';
+    crumb.innerHTML = `<a data-action="home">🏠 ホーム</a><span>›</span><a data-action="list">${escapeHtml(category)}</a><span>›</span><span class="font-semibold text-gray-700 truncate">${escapeHtml(file.name)}</span>`;
+    crumb.querySelector('[data-action="home"]').addEventListener('click', () => {
+      state.viewMode = 'home'; state.currentCategory = null; state.currentFile = null; updateNavActive(); render();
+    });
+    crumb.querySelector('[data-action="list"]').addEventListener('click', () => {
+      state.viewMode = 'list'; state.currentFile = null; render();
+    });
+    stickyHeader.appendChild(crumb);
+
+    const backBtn = document.createElement('button');
+    backBtn.className = 'text-sm text-blue-600 hover:text-blue-800 mb-2 inline-flex items-center gap-1';
+    backBtn.innerHTML = '← 一覧に戻る';
+    backBtn.addEventListener('click', () => {
+      state.viewMode = 'list'; state.currentFile = null; render();
+    });
+    stickyHeader.appendChild(backBtn);
+
+    if (!content) {
+      mainCol.appendChild(stickyHeader);
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-lg shadow-sm border border-gray-200 p-6';
+      card.innerHTML = '<p class="text-gray-400 italic">このファイルのプレビューはまだ用意されていません</p>';
+      mainCol.appendChild(card);
+      flexWrap.appendChild(mainCol);
+      root.appendChild(flexWrap);
+      return;
+    }
+
+    // frontmatter とコンテンツに分離
+    const parsed = parseFrontmatter(content);
+
+    // メタ情報カードを sticky ヘッダーに含める
+    if (Object.keys(parsed.meta).length > 0) {
+      stickyHeader.appendChild(buildMetaCard(parsed.meta));
+    }
+
+    mainCol.appendChild(stickyHeader);
+
+    // 本文カード
+    const card = document.createElement('div');
+    card.className = 'bg-white rounded-lg shadow-sm border border-gray-200 p-6';
+    const preview = document.createElement('div');
+    preview.className = 'file-preview';
+    try {
+      preview.innerHTML = marked.parse(parsed.body);
+    } catch (e) {
+      preview.textContent = parsed.body;
+    }
+    // 内部リンク傍受: マークダウン中のリンクが既知ファイルを指していたら、
+    // ダッシュボード内のファイルプレビューに切り替える
+    interceptInternalLinks(preview, file.path);
+    card.appendChild(preview);
+    mainCol.appendChild(card);
+
+    // 関連ドキュメント (プロジェクトサブフォルダ内のファイル)
+    const relatedCard = renderRelatedFiles(file.path);
+    if (relatedCard) mainCol.appendChild(relatedCard);
+
+    // TOC 生成 (mainCol 全体の h2 を拾う = 本文 + 関連ドキュメント)
+    const headings = mainCol.querySelectorAll('h2');
+    const tocCol = document.createElement('aside');
+    tocCol.className = 'w-52 flex-shrink-0 hidden lg:block toc-col';
+    if (headings.length > 0) {
+      const toc = document.createElement('nav');
+      toc.className = 'toc-sidebar';
+      const tocTitle = document.createElement('div');
+      tocTitle.className = 'text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-3';
+      tocTitle.textContent = '目次';
+      toc.appendChild(tocTitle);
+
+      headings.forEach((h, i) => {
+        const text = h.textContent;
+        const id = 'sec-' + i;
+        h.id = id;
+        const link = document.createElement('a');
+        link.href = '#' + id;
+        link.className = 'toc-link ' + h.tagName.toLowerCase();
+        link.textContent = text;
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // ハッシュ更新を防ぐ (URL状態管理と衝突回避)
+        });
+        toc.appendChild(link);
+      });
+      tocCol.appendChild(toc);
+    }
+
+    flexWrap.appendChild(mainCol);
+    flexWrap.appendChild(tocCol);
+    root.appendChild(flexWrap);
+  }
+
+  // ============================
+  // frontmatter パース & メタカード
+  // ============================
+  function parseFrontmatter(text) {
+    const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+    if (!m) return { meta: {}, body: text };
+    const yaml = m[1];
+    const body = m[2];
+    const meta = {};
+    yaml.split(/\r?\n/).forEach(line => {
+      const kv = line.match(/^([\w-]+):\s*(.*)$/);
+      if (!kv) return;
+      let value = kv[2].trim();
+      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+      if (value.startsWith('[') && value.endsWith(']')) {
+        value = value.slice(1, -1).split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
+      }
+      meta[kv[1]] = value;
+    });
+    return { meta, body };
+  }
+
+  function buildMetaCard(meta) {
+    const card = document.createElement('div');
+    card.className = 'bg-gradient-to-br from-white to-gray-50 rounded-lg shadow-sm border border-gray-200 px-4 py-3 mb-3';
+
+    // ヘッダー行: ステータス + メタ情報を1行に
+    const fields = [
+      { key: 'client', label: 'クライアント' },
+      { key: 'project', label: 'プロジェクト' },
+      { key: 'end_client', label: 'エンドクライアント' },
+      { key: 'contact', label: '担当者' },
+      { key: 'priority', label: '優先度', format: formatPriority },
+      { key: 'start_date', label: '開始日' },
+      { key: 'contract_date', label: '契約日' },
+      { key: 'deadline', label: '期日' },
+      { key: 'total_amount', label: '総額', format: formatAmount },
+    ];
+    const visibleFields = fields.filter(f => meta[f.key]);
+
+    // 上段: ステータス + タグ (横並びで省スペース)
+    const topRow = document.createElement('div');
+    topRow.className = 'flex items-center flex-wrap gap-2 mb-2';
+    if (meta.status) {
+      const badge = document.createElement('span');
+      badge.className = `text-xs px-2.5 py-0.5 rounded-full font-semibold ${statusClass(meta.status)}`;
+      badge.textContent = formatStatus(meta.status);
+      topRow.appendChild(badge);
+    }
+    if (meta.tags && Array.isArray(meta.tags) && meta.tags.length > 0) {
+      meta.tags.forEach(t => {
+        const tag = document.createElement('span');
+        tag.className = 'text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded';
+        tag.textContent = '#' + t;
+        topRow.appendChild(tag);
+      });
+    }
+    if (topRow.children.length > 0) card.appendChild(topRow);
+
+    // メタ情報グリッド (4列、コンパクト)
+    if (visibleFields.length > 0) {
+      const grid = document.createElement('div');
+      grid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-1.5 text-xs';
+      visibleFields.forEach(f => {
+        const cell = document.createElement('div');
+        const value = f.format ? f.format(meta[f.key]) : meta[f.key];
+        cell.innerHTML = `
+          <span class="text-gray-500">${escapeHtml(f.label)}:</span>
+          <span class="font-medium text-gray-800 ml-1">${escapeHtml(value)}</span>
+        `;
+        grid.appendChild(cell);
+      });
+      card.appendChild(grid);
+    }
+
+    return card;
+  }
+
+  function statusClass(status) {
+    const map = {
+      'planning': 'bg-gray-100 text-gray-700',
+      'in-progress': 'bg-blue-100 text-blue-700',
+      'review': 'bg-amber-100 text-amber-700',
+      'completed': 'bg-green-100 text-green-700',
+      'archived': 'bg-gray-100 text-gray-500',
+      'on-hold': 'bg-orange-100 text-orange-700',
+    };
+    return map[status] || 'bg-gray-100 text-gray-700';
+  }
+
+  function formatStatus(status) {
+    const map = {
+      'planning': '計画中',
+      'in-progress': '進行中',
+      'review': 'レビュー中',
+      'completed': '完了',
+      'archived': 'アーカイブ',
+      'on-hold': '保留中',
+    };
+    return map[status] || status;
+  }
+
+  function formatPriority(p) {
+    const map = { 'high': '高', 'normal': '通常', 'low': '低' };
+    return map[p] || p;
+  }
+
+  function formatAmount(a) {
+    const num = parseInt(a, 10);
+    if (isNaN(num)) return a;
+    return '¥' + num.toLocaleString('ja-JP');
+  }
+
+  // ============================
+  // 関連ドキュメント (プロジェクトサブフォルダ内のファイルを動的に集約)
+  // ============================
+  function renderRelatedFiles(currentFilePath) {
+    if (!currentFilePath || !currentFilePath.endsWith('.md')) return null;
+    // 「pm/projects/foo.md」 → 「pm/projects/foo/」 で始まるファイルを探す
+    const projectDir = currentFilePath.replace(/\.md$/, '/');
+    const allFiles = data.files_content || {};
+
+    const related = {};
+    Object.keys(allFiles).forEach(p => {
+      if (!p.startsWith(projectDir) || p === currentFilePath) return;
+      const relativePath = p.substring(projectDir.length);
+      const parts = relativePath.split('/');
+      const subfolder = parts.length > 1 ? parts[0] : 'その他';
+      const fname = parts[parts.length - 1].replace(/\.md$/, '');
+      if (!related[subfolder]) related[subfolder] = [];
+      related[subfolder].push({ name: fname, path: p });
+    });
+
+    if (Object.keys(related).length === 0) return null;
+
+    const card = document.createElement('div');
+    card.className = 'bg-white rounded-lg shadow-sm border border-gray-200 p-5 mt-4';
+    const header = document.createElement('h2');
+    header.className = 'text-base font-bold mb-4 flex items-center gap-2';
+    header.innerHTML = '<span>📚</span><span>関連ドキュメント</span>';
+    card.appendChild(header);
+
+    const subfolderIcons = {
+      '提案': '💡',
+      '契約': '📜',
+      '要件': '📋',
+      '調査': '🔍',
+      '設計': '🛠️',
+      '議事録': '🗣️',
+      '報告': '📊',
+      '運用': '⚙️',
+      'その他': '📁',
+    };
+    const order = ['提案', '契約', '要件', '調査', '設計', '議事録', '報告', '運用', 'その他'];
+    const sortedFolders = order.filter(s => related[s]).concat(Object.keys(related).filter(s => !order.includes(s)));
+
+    sortedFolders.forEach(subfolder => {
+      const section = document.createElement('div');
+      section.className = 'mb-4 last:mb-0';
+      const subTitle = document.createElement('div');
+      subTitle.className = 'text-sm font-semibold text-gray-700 mb-2 flex items-center gap-1.5';
+      const icon = subfolderIcons[subfolder] || '📁';
+      subTitle.innerHTML = `<span>${icon}</span><span>${escapeHtml(subfolder)}</span><span class="text-xs font-normal text-gray-400">(${related[subfolder].length})</span>`;
+      section.appendChild(subTitle);
+
+      const grid = document.createElement('div');
+      grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-2';
+      related[subfolder].sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+      related[subfolder].forEach(f => {
+        const link = document.createElement('button');
+        link.className = 'text-left px-3 py-2 text-sm text-gray-700 bg-gray-50 hover:bg-blue-50 hover:text-blue-700 rounded border border-gray-200 hover:border-blue-300 transition-colors';
+        link.innerHTML = `<span class="text-gray-400 mr-1">📄</span>${escapeHtml(f.name)}`;
+        link.addEventListener('click', () => {
+          state.viewMode = 'detail';
+          state.currentFile = f;
+          render();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        grid.appendChild(link);
+      });
+      section.appendChild(grid);
+      card.appendChild(section);
+    });
+
+    return card;
+  }
+
+  // ============================
+  // 内部リンク傍受 (本文中のリンクを内部ナビ化)
+  // ============================
+  function interceptInternalLinks(preview, currentPath) {
+    const links = preview.querySelectorAll('a[href]');
+    const allFiles = data.files_content || {};
+    const fileIndex = {};
+    // パスを正規化してインデックス化
+    Object.keys(allFiles).forEach(p => {
+      fileIndex[p] = p;
+      // ファイル名のみでも引けるように
+      const basename = p.split('/').pop();
+      if (!fileIndex[basename]) fileIndex[basename] = p;
+    });
+
+    const currentDir = currentPath.split('/').slice(0, -1).join('/');
+
+    links.forEach(a => {
+      const href = a.getAttribute('href');
+      if (!href || href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('#')) return;
+
+      // 相対パス・絶対パスを正規化
+      let resolved = href.replace(/^\.\//, '');
+      if (!resolved.startsWith('/') && currentDir) {
+        // 現在ファイルのディレクトリ基準で解決
+        resolved = currentDir + '/' + resolved;
+      }
+      // ../ 解決
+      const parts = resolved.split('/');
+      const stack = [];
+      parts.forEach(p => {
+        if (p === '..') stack.pop();
+        else if (p && p !== '.') stack.push(p);
+      });
+      resolved = stack.join('/');
+
+      let target = fileIndex[resolved] || fileIndex[href.split('/').pop()];
+      if (!target) return;
+
+      // 該当ファイルが見つかったらクリック動作を傍受
+      a.style.cursor = 'pointer';
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        // ファイルが含まれるカテゴリを探す
+        let foundCategory = null;
+        let foundFile = null;
+        for (const [cat, files] of Object.entries(data.files || {})) {
+          const f = (files || []).find(f => f.path === target);
+          if (f) {
+            foundCategory = cat;
+            foundFile = f;
+            break;
+          }
+        }
+        if (foundFile && foundCategory) {
+          state.viewMode = 'detail';
+          state.currentCategory = foundCategory;
+          state.currentFile = foundFile;
+          updateNavActive();
+          render();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          // メインカテゴリにないが、files_content にあれば「関連ファイル」として開く
+          // (現在のカテゴリは維持して、戻り先がブレないようにする)
+          state.viewMode = 'detail';
+          state.currentFile = {
+            name: target.split('/').pop().replace(/\.md$/, ''),
+            path: target
+          };
+          render();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    });
+  }
+
+  // ============================
+  // パーツ生成
+  // ============================
+  function createCard(title, subtitle) {
+    const el = document.createElement('div');
+    el.className = 'bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-4';
+    const h = document.createElement('h2');
+    h.className = 'text-base font-bold mb-3 flex items-center gap-2';
+    h.innerHTML = `<span>${escapeHtml(title)}</span>${subtitle ? `<span class="text-xs text-gray-400">${escapeHtml(subtitle)}</span>` : ''}`;
+    const body = document.createElement('div');
+    el.appendChild(h);
+    el.appendChild(body);
+    return { el, body };
+  }
+
+  // 旧形式 (today/waiting/completed) → 新形式 (active/completed) への吸収
+  function normalizeTodos(raw) {
+    if (!raw) return { active: [], completed: [] };
+    if (Array.isArray(raw.active)) {
+      return { active: raw.active, completed: raw.completed || [] };
+    }
+    // 旧形式フォールバック
+    const active = [];
+    (raw.today || []).forEach(t => active.push({ ...t, kind: t.kind || 'task', date: t.date || null, date_label: t.date_label || t.due || '' }));
+    (raw.waiting || []).forEach(t => active.push({ ...t, kind: 'waiting', date: null, date_label: t.due || '-', waiting_on: t.waiting_on || t.from || '-' }));
+    return { active, completed: raw.completed || [] };
+  }
+
+  // kind でセクション分け + 日付/優先度でソート
+  function sectionizeTodos(active) {
+    const prioRank = { '最高': 0, '高': 1, '通常': 2, '低': 3 };
+    const FAR = '9999-12-31';
+    const byDateThenPrio = (a, b) => {
+      const da = a.date || FAR, db = b.date || FAR;
+      if (da !== db) return da.localeCompare(db);
+      return (prioRank[a.priority] ?? 9) - (prioRank[b.priority] ?? 9);
+    };
+    const byPrioThenDate = (a, b) => {
+      const pa = (prioRank[a.priority] ?? 9), pb = (prioRank[b.priority] ?? 9);
+      if (pa !== pb) return pa - pb;
+      return (a.date || FAR).localeCompare(b.date || FAR);
+    };
+
+    const fixed = active.filter(t => t.kind === 'meeting' || t.kind === 'deadline').sort(byDateThenPrio);
+    const tasks = active.filter(t => t.kind === 'task' || !t.kind).sort(byDateThenPrio);
+    const waiting = active.filter(t => t.kind === 'waiting').sort(byPrioThenDate);
+    return { fixed, tasks, waiting };
+  }
+
+  // 日付までの残日数バッジ (今日=🟢今日 / 明日=🟡明日 / 2〜3日=🟠N日後 / 4日以上=グレー M/D)
+  function renderDateBadge(t) {
+    if (!t.date) {
+      return `<span class="text-xs text-gray-500">${escapeHtml(t.date_label || '-')}</span>`;
+    }
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const target = new Date(t.date + 'T00:00:00+09:00');
+    const diffDays = Math.round((target - today) / (1000 * 60 * 60 * 24));
+    let badge, tone;
+    if (diffDays < 0) { badge = `${diffDays}日超過`; tone = 'bg-red-100 text-red-800'; }
+    else if (diffDays === 0) { badge = '今日'; tone = 'bg-red-100 text-red-800'; }
+    else if (diffDays === 1) { badge = '明日'; tone = 'bg-orange-100 text-orange-800'; }
+    else if (diffDays <= 3) { badge = `${diffDays}日後`; tone = 'bg-amber-100 text-amber-800'; }
+    else if (diffDays <= 7) { badge = `${diffDays}日後`; tone = 'bg-blue-100 text-blue-800'; }
+    else { badge = `${diffDays}日後`; tone = 'bg-gray-100 text-gray-700'; }
+    const label = t.date_label ? `<span class="text-[11px] text-gray-500 ml-1">${escapeHtml(t.date_label)}</span>` : '';
+    return `<span class="text-xs px-2 py-0.5 rounded font-semibold ${tone}">${badge}</span>${label}`;
+  }
+
+  function buildTodoTable(todos) {
+    const table = document.createElement('table');
+    table.className = 'w-full text-sm table-fixed';
+    table.innerHTML = '<thead><tr class="border-b border-gray-200 text-left"><th class="py-2 font-semibold">タスク</th><th class="py-2 font-semibold w-16">優先度</th><th class="py-2 font-semibold w-56">実施日 / 期限</th><th class="py-2 font-semibold w-48">待ち先</th></tr></thead>';
+    const tbody = document.createElement('tbody');
+
+    const addSectionHeader = (label, count, toneClass) => {
+      const tr = document.createElement('tr');
+      tr.className = toneClass;
+      tr.innerHTML = `<td colspan="4" class="py-1.5 px-2 text-xs font-semibold">${label} <span class="font-normal opacity-70">(${count})</span></td>`;
+      tbody.appendChild(tr);
+    };
+
+    const addRow = (t, rowClass) => {
+      const tr = document.createElement('tr');
+      tr.className = rowClass;
+      const prio = t.priority || '通常';
+      const waitingCell = t.kind === 'waiting'
+        ? `<td class="py-2 text-xs text-amber-700 font-medium pr-2 leading-snug break-words" title="${escapeHtml(t.waiting_on || '')}">${escapeHtml(t.waiting_on || '-')}</td>`
+        : `<td class="py-2 text-xs text-gray-400">-</td>`;
+      tr.innerHTML = `<td class="py-2 pr-3"><div class="overflow-x-auto whitespace-nowrap">${escapeHtml(t.task)}</div></td><td class="py-2"><span class="text-xs px-2 py-0.5 rounded priority-${escapeHtml(prio)}">${escapeHtml(prio)}</span></td><td class="py-2 whitespace-nowrap">${renderDateBadge(t)}</td>${waitingCell}`;
+      tbody.appendChild(tr);
+    };
+
+    const { fixed, tasks, waiting } = sectionizeTodos(todos.active || []);
+
+    if (fixed.length > 0) {
+      addSectionHeader('📅 確定予定', fixed.length, 'bg-indigo-50 text-indigo-800');
+      fixed.forEach(t => addRow(t, 'border-b border-gray-100 bg-indigo-50/30'));
+    }
+    if (tasks.length > 0) {
+      addSectionHeader('🔥 直近タスク', tasks.length, 'bg-blue-50 text-blue-800');
+      tasks.forEach(t => addRow(t, 'border-b border-gray-100'));
+    }
+    if (waiting.length > 0) {
+      addSectionHeader('⏳ 待ち', waiting.length, 'bg-amber-50 text-amber-800');
+      waiting.forEach(t => addRow(t, 'border-b border-gray-100 bg-amber-50/40'));
+    }
+
+    const completedItems = todos.completed || [];
+    if (completedItems.length > 0) {
+      addSectionHeader('✅ 完了', completedItems.length, 'bg-gray-50 text-gray-600');
+      completedItems.forEach(t => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-gray-100 text-gray-400 line-through';
+        tr.innerHTML = `<td class="py-2 pr-3"><div class="overflow-x-auto whitespace-nowrap">${escapeHtml(t.task)}</div></td><td class="py-2 text-xs">-</td><td class="py-2 text-xs whitespace-nowrap">${escapeHtml(t.completed_at || '')}</td><td class="py-2 text-xs">-</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    table.appendChild(tbody);
+    return table;
+  }
+
+  function buildDelegationTable(myDelegations) {
+    const table = document.createElement('table');
+    table.className = 'w-full text-sm';
+    table.innerHTML = '<thead><tr class="border-b border-gray-200 text-left"><th class="py-2 font-semibold">タスク</th><th class="py-2 font-semibold w-28">依頼先</th><th class="py-2 font-semibold w-20">状態</th><th class="py-2 font-semibold w-24">期限</th></tr></thead>';
+    const tbody = document.createElement('tbody');
+    myDelegations.forEach(d => {
+      const assignee = (data.users || []).find(u => u.slug === d.to);
+      const assigneeName = assignee ? assignee.name : d.to;
+      const tr = document.createElement('tr');
+      tr.className = 'border-b border-gray-100';
+      tr.innerHTML = `<td class="py-2">${escapeHtml(d.task)}</td><td class="py-2 text-xs">${escapeHtml(assigneeName)}</td><td class="py-2 text-xs">${renderStatus(d.status)}</td><td class="py-2 text-xs text-gray-600">${escapeHtml(d.due || '')}</td>`;
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    return table;
+  }
+
+  // ============================
+  // ヘルパー
+  // ============================
+  function getSnippet(path) {
+    const content = (data.files_content || {})[path];
+    if (!content) return '';
+    // 見出しを取り除いて最初のテキスト行を抽出
+    const lines = content.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#') && !l.startsWith('---') && !l.startsWith('|') && !l.startsWith('-'));
+    return (lines[0] || '').substring(0, 80);
+  }
+
+  function renderStatus(status) {
+    const map = {
+      'open': '⏳未着手',
+      'working': '🔧作業中',
+      'done': '✅完了',
+      'cancelled': '❌キャンセル',
+      'on-hold': '⏸️保留'
+    };
+    return map[status] || status;
+  }
+
+  function formatTime(iso) {
+    try {
+      const d = new Date(iso);
+      const now = new Date();
+      const isToday =
+        d.getFullYear() === now.getFullYear() &&
+        d.getMonth() === now.getMonth() &&
+        d.getDate() === now.getDate();
+      const time = d.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+      if (isToday) {
+        return '最終更新: 今日 ' + time;
+      }
+      const date = d.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      return '最終更新: ' + date + ' ' + time;
+    } catch (e) {
+      return iso;
+    }
+  }
+
+  function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+})();
+</script>
+
+</body>
+</html>
