@@ -5,5 +5,8 @@ window.TOTONO_DATA.files = {
   ],
   "マーケティング": [],
   "経理": [],
-  "事業": []
+  "事業": [
+    { label: "LINKスピーチ・告知文", path: "business/mlm/LINK-1min-speech.md" },
+    { label: "UBM スキルアップセミナー", path: "business/life-consulting/UBM/skillup-seminars/README.md" }
+  ]
 };

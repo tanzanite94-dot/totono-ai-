@@ -6,6 +6,8 @@ window.TOTONO_MANIFEST = {
   files_index: "data-files.js",
   content: [
     "content/company-info.js",
-    "content/sales/clients.js"
+    "content/sales/clients.js",
+    "content/business/mlm/LINK-1min-speech.js",
+    "content/business/life-consulting/UBM/skillup-seminars.js"
   ]
 };
