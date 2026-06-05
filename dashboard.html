@@ -473,7 +473,7 @@
     today.setHours(0,0,0,0);
 
     // 今日から14日分の枠を作る
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < 90; i++) {
       const d = new Date(today);
       d.setDate(d.getDate() + i);
       const key = d.toISOString().slice(0,10);
@@ -502,7 +502,7 @@
     // ヘッダー
     const h = document.createElement('h2');
     h.className = 'text-lg font-bold text-gray-800 mb-4 flex items-center gap-2';
-    h.innerHTML = '📅 スケジュール <span class="text-sm font-normal text-gray-400">（今後14日）</span>';
+    h.innerHTML = '📅 スケジュール <span class="text-sm font-normal text-gray-400">（今後3ヶ月）</span>';
     wrap.appendChild(h);
 
     Object.keys(byDate).sort().forEach(dateKey => {
