@@ -8,6 +8,7 @@ window.TOTONO_MANIFEST = {
     "content/company-info.js",
     "content/sales/clients.js",
     "content/business/mlm/LINK-1min-speech.js",
-    "content/business/life-consulting/UBM/skillup-seminars.js"
+    "content/business/life-consulting/UBM/skillup-seminars.js",
+    "content/finance/subscriptions.js"
   ]
 };
