@@ -4,7 +4,12 @@ window.TOTONO_DATA.files = {
     { label: "顧客リスト", name: "顧客リスト", path: "sales/clients/顧客リスト.md" }
   ],
   "マーケティング": [],
-  "経理": [],
+  "経理": [
+    { label: "サブスク管理", name: "サブスク管理", path: "finance/subscriptions.md" }
+  ],
+  "リンク集": [
+    { label: "よく使うリンク集", name: "よく使うリンク集", path: "links.md" }
+  ],
   "事業": [
     { label: "LINKスピーチ・告知文", name: "LINKスピーチ・告知文", path: "business/mlm/LINK-1min-speech.md" },
     { label: "UBM スキルアップセミナー", name: "UBM スキルアップセミナー", path: "business/life-consulting/UBM/skillup-seminars/README.md" }

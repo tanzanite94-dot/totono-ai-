@@ -15,6 +15,9 @@ window.TOTONO_DATA.backlog = {
       {"task": "英語勉強", "memo": "日本語教師事業・海外生活にも必要", "target": "継続", "added": "2026-06-04"},
       {"task": "宅建取得", "memo": "Valuable Style関連にも活かせる", "target": "検討中", "added": "2026-06-04"}
     ],
-    someday: []
+    someday: [
+      {"task": "Notion移行検討", "memo": "2026/9/28解約予定。コンテンツ移行 or 継続判断が必要", "target": "2026/9/28まで", "added": "2026-06-07"},
+      {"task": "FP3級勉強プラン作成", "memo": "早急に取りたい。プランを立てる", "target": "近々", "added": "2026-06-07"}
+    ]
   }
 };
