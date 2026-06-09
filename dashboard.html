@@ -336,12 +336,25 @@
     '部署': '🗂️',
     'メモ': '📓',
     'レビュー': '📊',
+    'LINK': '🔗',
+    'UBM': '💼',
+    'メラルーカ': '🌿',
+    'リブマイセルフ': '✨',
   };
+
+  // グループ定義 (グループ名 → カテゴリ配列)
+  const CATEGORY_GROUPS = {
+    '💡 事業': ['LINK', 'UBM', 'メラルーカ', 'リブマイセルフ']
+  };
+  const GROUPED_CATEGORIES = new Set(Object.values(CATEGORY_GROUPS).flat());
 
   // サイドバーから隠すカテゴリ (データは残るが、別UIから参照される)
   const HIDDEN_CATEGORIES = new Set(['クライアント']);
+
+  // グループに属さないカテゴリを先に表示
   Object.entries(data.files || {}).forEach(([category, files]) => {
     if (HIDDEN_CATEGORIES.has(category)) return;
+    if (GROUPED_CATEGORIES.has(category)) return;
     const li = document.createElement('li');
     const btn = document.createElement('button');
     btn.className = 'nav-btn';
@@ -357,6 +370,39 @@
     });
     li.appendChild(btn);
     mainNav.appendChild(li);
+  });
+
+  // グループヘッダー＋サブカテゴリを表示
+  Object.entries(CATEGORY_GROUPS).forEach(([groupName, categories]) => {
+    // グループヘッダー
+    const groupLi = document.createElement('li');
+    groupLi.className = 'mt-3';
+    const groupHeader = document.createElement('div');
+    groupHeader.className = 'px-3 py-1 text-xs font-bold text-gray-400 uppercase tracking-wider';
+    groupHeader.textContent = groupName;
+    groupLi.appendChild(groupHeader);
+    mainNav.appendChild(groupLi);
+
+    // サブカテゴリボタン
+    categories.forEach(category => {
+      const files = (data.files || {})[category];
+      if (files === undefined) return;
+      const li = document.createElement('li');
+      const btn = document.createElement('button');
+      btn.className = 'nav-btn pl-6';
+      btn.dataset.category = category;
+      const icon = categoryIcons[category] || '📁';
+      btn.innerHTML = `<span>${icon}</span><span>${escapeHtml(category)}</span><span class="count">${(files || []).length}</span>`;
+      btn.addEventListener('click', () => {
+        state.viewMode = 'list';
+        state.currentCategory = category;
+        state.currentFile = null;
+        updateNavActive();
+        render();
+      });
+      li.appendChild(btn);
+      mainNav.appendChild(li);
+    });
   });
 
   function updateNavActive() {
