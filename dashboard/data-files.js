@@ -12,6 +12,7 @@ window.TOTONO_DATA.files = {
   ],
   "事業": [
     { label: "LINKスピーチ・告知文", name: "LINKスピーチ・告知文", path: "business/mlm/LINK-1min-speech.md" },
-    { label: "UBM スキルアップセミナー", name: "UBM スキルアップセミナー", path: "business/life-consulting/UBM/skillup-seminars/README.md" }
+    { label: "UBM スキルアップセミナー", name: "UBM スキルアップセミナー", path: "business/life-consulting/UBM/skillup-seminars/README.md" },
+    { label: "ドミニオン勉強会まとめ", name: "ドミニオン勉強会まとめ", path: "business/life-consulting/UBM/skillup-seminars/dominion-study.md" }
   ]
 };
