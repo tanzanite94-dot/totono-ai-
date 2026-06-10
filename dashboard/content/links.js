@@ -1,3 +1,36 @@
+window.TOTONO_DATA = window.TOTONO_DATA || {};
+window.TOTONO_DATA.files_content = window.TOTONO_DATA.files_content || {};
+window.TOTONO_DATA.files_content["links.md"] = `# よく使うリンク集
+
+## 毎日
+
+| サービス | URL |
+|---------|-----|
+| LINE公式アカウント | https://manager.line.biz/ |
+| 金融アカデミー（毎朝7:00） | https://www.facebook.com/ |
+| Holland Village | https://www.facebook.com/ |
+
+## 事業
+
+| サービス | URL |
+|---------|-----|
+| LINK公式LINE | https://lin.ee/Y0IYihi |
+| LINK SASAEAIプロフィール | https://sasaeai.link-platform.jp/mypage/profile/member?profile_id=23365 |
+| LINK BASEサービスページ | https://link-base.jp/base_int/16454 |
+
+## 顧客
+
+| サービス | URL |
+|---------|-----|
+| 顧客リスト（Notion） | https://www.notion.so/10f21cc389fa804c8222cd4e144fb7dd |
+
+## ツール
+
+| サービス | URL |
+|---------|-----|
+| ダッシュボード | https://kei-ito77.github.io/totono-ai/dashboard.html |
+`;
+
 window.TOTONO_CONTENT = window.TOTONO_CONTENT || {};
 window.TOTONO_CONTENT["links.md"] = {
   title: "よく使うリンク集",

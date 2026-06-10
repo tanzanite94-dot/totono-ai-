@@ -11,7 +11,8 @@ window.TOTONO_DATA.files = {
     { label: "よく使うリンク集", name: "よく使うリンク集", path: "links.md" }
   ],
   "LINK": [
-    { label: "スピーチ・告知文", name: "LINKスピーチ・告知文", path: "business/mlm/LINK-1min-speech.md" }
+    { label: "スピーチ本文", name: "LINK 1分スピーチ本文", path: "business/mlm/LINK-speech.md" },
+    { label: "告知文集", name: "LINK 告知文集", path: "business/mlm/LINK-announcements.md" }
   ],
   "UBM": [
     { label: "スキルアップセミナー一覧", name: "UBM スキルアップセミナー", path: "business/life-consulting/UBM/skillup-seminars/README.md" },

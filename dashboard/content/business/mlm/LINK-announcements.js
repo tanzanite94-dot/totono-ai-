@@ -1,0 +1,65 @@
+window.TOTONO_DATA = window.TOTONO_DATA || {};
+window.TOTONO_DATA.files_content = window.TOTONO_DATA.files_content || {};
+window.TOTONO_DATA.files_content["business/mlm/LINK-announcements.md"] = `---
+type: announcements
+event: LINK勉強会・全国メンバーズ交流会
+created: 2026-06-04
+---
+
+# LINK向け 告知文集
+
+## 告知文①（満席後の増席告知）
+
+限定５名満席になりました！
+追加で５名いたします。
+
+【速攻定員になりましたが、増設します！】
+
+---
+
+## 告知文②（SNS投稿用・学習中）
+
+🌐Kelly(ケリー)/O.N.(ビバモス!)
+
+💰お金のロードマップ相談
+
+教育費・老後資金・資産形成など、
+人生とお金を見える化する個別相談です✨
+
+全国メンバーズ交流会参加者限定
+
+🌸先着5名様限定🌸
+30分無料相談
+
+ご希望の方は
+公式LINE登録後
+
+【LINK】
+
+とメッセージください😊
+
+LINE: https://lin.ee/Y0IYihi
+SASAEAI: https://sasaeai.link-platform.jp/mypage/profile/member?profile_id=23365
+LINK BASEサービスページ: https://link-base.jp/base_int/16454
+
+※参考：満席にならない場合の書き方を研究中
+
+---
+
+## 告知文③（改善案・短くスッキリ版）
+
+💰 **お金の不安、数字で解決します**
+
+「教育費、老後、家計…実際いくら必要？」
+そんな疑問、30分で見える化します✨
+
+全国メンバーズ交流会 **参加者限定**
+🌸先着5名 無料相談🌸
+
+↓公式LINEに【LINK】と送ってください
+https://lin.ee/Y0IYihi
+
+Kelly（ライフコンサルタント）
+
+※ポイント：冒頭を「相手の悩み」から始める、行動までの導線を短く
+`;
