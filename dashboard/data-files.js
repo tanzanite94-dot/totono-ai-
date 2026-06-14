@@ -16,7 +16,8 @@ window.TOTONO_DATA.files = {
   ],
   "UBM": [
     { label: "スキルアップセミナー一覧", name: "UBM スキルアップセミナー", path: "business/life-consulting/UBM/skillup-seminars/README.md" },
-    { label: "ドミニオン勉強会まとめ", name: "ドミニオン勉強会まとめ", path: "business/life-consulting/UBM/skillup-seminars/dominion-study.md" }
+    { label: "ドミニオン勉強会まとめ", name: "ドミニオン勉強会まとめ", path: "business/life-consulting/UBM/skillup-seminars/dominion-study.md" },
+    { label: "【リブマイ・ファースト】質問議事録 2026-06-11", name: "質問議事録 2026-06-11", path: "business/life-consulting/UBM/meetings/2026-06-11-qa.md" }
   ],
   "メラルーカ": [],
   "リブマイセルフ": []
