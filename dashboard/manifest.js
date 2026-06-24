@@ -10,6 +10,9 @@ window.TOTONO_MANIFEST = {
     "content/business/mlm/LINK-speech.js",
     "content/business/mlm/LINK-announcements.js",
     "content/business/life-consulting/UBM/skillup-seminars.js",
+    "content/business/life-consulting/UBM/dominion-説明文.js",
+    "content/business/life-consulting/UBM/dominion-コスト比較.js",
+    "content/business/life-consulting/UBM/dominion-ワンプランニング.js",
     "content/business/life-consulting/UBM/meetings/2026-06-11-qa.js",
     "content/finance/subscriptions.js",
     "content/links.js"
