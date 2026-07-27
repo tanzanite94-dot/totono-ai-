@@ -7,6 +7,11 @@ window.TOTONO_DATA.files = {
   "経理": [
     { label: "サブスク管理", name: "サブスク管理", path: "finance/subscriptions.md" }
   ],
+  "金融ニュース便": [
+    { label: "2026-07-27（第1号）", name: "金融ニュース便 2026-07-27", path: "finance/news/2026-07-27.md" },
+    { label: "用語ノート", name: "金融 用語ノート", path: "finance/news/用語ノート.md" },
+    { label: "この便の読み方・ルール", name: "金融ニュース便 ルール", path: "finance/news/README.md" }
+  ],
   "リンク集": [
     { label: "よく使うリンク集", name: "よく使うリンク集", path: "links.md" }
   ],
