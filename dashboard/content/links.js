@@ -29,12 +29,18 @@ window.TOTONO_DATA.files_content["links.md"] = `# よく使うリンク集
 | サービス | URL |
 |---------|-----|
 | ダッシュボード | https://kei-ito77.github.io/totono-ai/dashboard.html |
+
+## 学習
+
+| サービス | URL |
+|---------|-----|
+| 宅建士試験 学習台帳（2026.10.18） | study/takken/index.html |
 `;
 
 window.TOTONO_CONTENT = window.TOTONO_CONTENT || {};
 window.TOTONO_CONTENT["links.md"] = {
   title: "よく使うリンク集",
-  updated: "2026-06-09",
+  updated: "2026-07-29",
   quicklinks: [
     { label: "LINE公式アカウント", url: "https://manager.line.biz/", emoji: "💬", group: "毎日" },
     { label: "金融アカデミー（毎朝7:00）", url: "https://www.facebook.com/", emoji: "📻", group: "毎日" },
@@ -43,6 +49,7 @@ window.TOTONO_CONTENT["links.md"] = {
     { label: "LINK SASAEAIプロフィール", url: "https://sasaeai.link-platform.jp/mypage/profile/member?profile_id=23365", emoji: "👤", group: "事業" },
     { label: "LINK BASEサービスページ", url: "https://link-base.jp/base_int/16454", emoji: "🌐", group: "事業" },
     { label: "顧客リスト（Notion）", url: "https://www.notion.so/10f21cc389fa804c8222cd4e144fb7dd", emoji: "📋", group: "顧客" },
-    { label: "ダッシュボード", url: "https://kei-ito77.github.io/totono-ai/dashboard.html", emoji: "🖥️", group: "ツール" }
+    { label: "ダッシュボード", url: "https://kei-ito77.github.io/totono-ai/dashboard.html", emoji: "🖥️", group: "ツール" },
+    { label: "宅建 学習台帳", url: "study/takken/index.html", emoji: "📐", group: "学習" }
   ]
 };

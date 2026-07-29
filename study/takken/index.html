@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宅建士試験 学習台帳 - 2026.10.18</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7/babel.min.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; }
+  button { background: none; border: none; padding: 0; cursor: pointer; font: inherit; color: inherit; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+  /* 進捗の保存先。Artifact 環境では window.storage、
+     ブラウザで直接開いたときは localStorage を使う。 */
+  window.storage = window.storage || {
+    get: async (key) => ({ value: localStorage.getItem(key) }),
+    set: async (key, value) => { localStorage.setItem(key, value); },
+  };
+
+  /* JSX は classic runtime（React.createElement）で変換する。
+     automatic runtime だと import 文が出てブラウザ単体では動かない。 */
+  Babel.registerPreset("react-classic", {
+    presets: [[Babel.availablePresets["react"], { runtime: "classic" }]],
+  });
+</script>
+
+<script type="text/babel" data-presets="react-classic">
+const { useState, useEffect, useMemo, useCallback } = React;
+
+/* ────────────────────────────────────────────
+   宅建士試験 2026.10.18  学習台帳
+   青焼き図面をモチーフにしたトーン
+   ──────────────────────────────────────────── */
+
+const T = {
+  paper: "#E4EBEE",
+  card: "#F4F8F9",
+  ink: "#0E2A3E",
+  sub: "#5C7889",
+  line: "#B4C5CD",
+  faint: "#D3DEE3",
+  seal: "#B3362A",
+  ok: "#1E6B54",
+};
+
+const F = {
+  disp: '"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif',
+  body: '"Hiragino Sans","Yu Gothic","Noto Sans JP",system-ui,sans-serif',
+  num: '"SF Mono","Roboto Mono",ui-monospace,monospace',
+};
+
+const EXAM = new Date(2026, 9, 18);
+const START = new Date(2026, 6, 29);
+
+const AREAS = [
+  { key: "gyoho", label: "宅建業法", goal: "18/20" },
+  { key: "kenri", label: "権利関係", goal: "7/14" },
+  { key: "seigen", label: "法令上の制限", goal: "6/8" },
+  { key: "zei", label: "税・その他", goal: "6/8" },
+];
+
+/* ── 学習計画 ───────────────────────────── */
+
+const PHASES = [
+  {
+    name: "第一期・業法を土台にする",
+    span: "7/29 – 8/23",
+    aim: "宅建業法を一周し、得点源を先に作る",
+    weeks: [
+      {
+        id: "w1",
+        label: "第1週 7/29–8/2",
+        tasks: [
+          "免許制度（免許基準・欠格事由・免許換え）",
+          "宅建士（登録・宅建士証・設置義務5人に1人）",
+          "この範囲の一問一答を2周",
+        ],
+      },
+      {
+        id: "w2",
+        label: "第2週 8/3–8/9",
+        tasks: [
+          "営業保証金（1,000万／500万・還付・取戻し）",
+          "保証協会（分担金60万／30万・弁済業務）",
+          "業務上の規制（誇大広告・契約締結時期の制限）",
+        ],
+      },
+      {
+        id: "w3",
+        label: "第3週 8/10–8/16",
+        tasks: [
+          "35条書面と37条書面の記載事項を対比表で暗記",
+          "8種制限（クーリング・オフ／手付／保全措置）",
+          "報酬計算を10問解いて手順を固定",
+        ],
+      },
+      {
+        id: "w4",
+        label: "第4週 8/17–8/23",
+        tasks: [
+          "監督処分・罰則、媒介契約の3類型",
+          "業法の分野別過去問を1周（正答率80%が目安）",
+          "間違いノートを作り始める",
+        ],
+      },
+    ],
+  },
+  {
+    name: "第二期・残りを積む",
+    span: "8/24 – 9/13",
+    aim: "権利関係は捨てずに、頻出だけ確実に取る",
+    weeks: [
+      {
+        id: "w5",
+        label: "第5週 8/24–8/30",
+        tasks: [
+          "意思表示・制限行為能力者・代理・時効",
+          "対抗問題（177条）の典型パターン",
+          "権利関係の一問一答を1周",
+        ],
+      },
+      {
+        id: "w6",
+        label: "第6週 8/31–9/6",
+        tasks: [
+          "抵当権（物上代位・法定地上権）",
+          "債務不履行・解除・契約不適合責任",
+          "相続（法定相続分・遺留分）",
+        ],
+      },
+      {
+        id: "w7",
+        label: "第7週 9/7–9/13",
+        tasks: [
+          "借地借家法（存続期間・定期借地／定期借家）",
+          "区分所有法（決議要件の数字）",
+          "権利関係の分野別過去問を1周",
+        ],
+      },
+    ],
+  },
+  {
+    name: "第三期・過去問に乗り換える",
+    span: "9/14 – 10/4",
+    aim: "インプットを止めて、本試験形式に体を慣らす",
+    weeks: [
+      {
+        id: "w8",
+        label: "第8週 9/14–9/20",
+        tasks: [
+          "都市計画法（開発許可の面積要件）・建築基準法",
+          "国土利用計画法・農地法・土地区画整理法",
+          "税（不動産取得税／固定資産税／印紙税）・鑑定評価",
+        ],
+      },
+      {
+        id: "w9",
+        label: "第9週 9/21–9/27",
+        tasks: [
+          "年度別過去問 3年分を2時間で解く",
+          "解き直し。間違いノートに理由まで書く",
+          "5問免除科目（統計は直前に最新版で）",
+        ],
+      },
+      {
+        id: "w10",
+        label: "第10週 9/28–10/4",
+        tasks: [
+          "年度別過去問 さらに3年分",
+          "業法だけもう一周（ここは落とさない）",
+          "間違いノートを分野別に整理",
+        ],
+      },
+    ],
+  },
+  {
+    name: "第四期・直前",
+    span: "10/5 – 10/18",
+    aim: "新しい教材を足さない。今ある穴だけ埋める",
+    weeks: [
+      {
+        id: "w11",
+        label: "第11週 10/5–10/11",
+        tasks: [
+          "予想模試2回（本番と同じ13:00–15:00で）",
+          "数字の暗記総ざらい（期間・面積・割合）",
+          "間違いノートを通読",
+        ],
+      },
+      {
+        id: "w12",
+        label: "第12週 10/12–10/18",
+        tasks: [
+          "業法35条・37条の対比表を白紙に再現できるか確認",
+          "最新の統計・法改正をチェック",
+          "持ち物と会場までの経路を前日までに確定",
+          "10/18 本試験 13:00–15:00",
+        ],
+      },
+    ],
+  },
+];
+
+/* ── 一問一答 ───────────────────────────── */
+
+const Q = [
+  // 宅建業法
+  { id: 1, a: "gyoho", t: "宅建業者は、事務所ごとに、業務に従事する者5人に1人以上の割合で成年者である専任の宅地建物取引士を置かなければならない。", ans: true, e: "設置義務の基本。案内所等で契約を締結する場所には1人以上でよい。" },
+  { id: 2, a: "gyoho", t: "自ら貸主として建物を賃貸する行為は、宅地建物取引業に当たる。", ans: false, e: "「自ら貸借」は取引に含まれない。自ら売買・交換、代理、媒介が対象。" },
+  { id: 3, a: "gyoho", t: "宅建業者は、営業保証金を供託した旨を免許権者に届け出た後でなければ、事業を開始することができない。", ans: true, e: "供託だけでは足りず、届出まで済ませて初めて開業できる。" },
+  { id: 4, a: "gyoho", t: "営業保証金の額は、主たる事務所につき1,000万円、その他の事務所につき1か所あたり500万円である。", ans: true, e: "保証協会に加入する場合の分担金（60万／30万）と対で覚える。" },
+  { id: 5, a: "gyoho", t: "保証協会の社員となろうとする者は、加入しようとする日までに、弁済業務保証金分担金を保証協会に納付しなければならない。", ans: true, e: "納付先は保証協会、供託するのは保証協会。主たる事務所60万円、その他30万円。" },
+  { id: 6, a: "gyoho", t: "重要事項の説明は、契約が成立した後、遅滞なく行わなければならない。", ans: false, e: "35条書面は契約成立前。成立後に交付するのが37条書面。ここが最頻出の入れ替え。" },
+  { id: 7, a: "gyoho", t: "宅建士は、重要事項の説明をするときは、相手方から請求がなくても宅地建物取引士証を提示しなければならない。", ans: true, e: "35条説明時は請求がなくても提示。取引の関係者から請求されたときも提示義務がある。" },
+  { id: 8, a: "gyoho", t: "37条書面は、宅地建物取引士が内容を説明しなければならない。", ans: false, e: "37条書面に説明義務はない。宅建士の記名は必要だが、説明までは求められていない。" },
+  { id: 9, a: "gyoho", t: "クーリング・オフによる申込みの撤回は、その旨を記載した書面を発した時に効力を生ずる。", ans: true, e: "発信主義。相手に届いた時ではない。" },
+  { id: 10, a: "gyoho", t: "クーリング・オフができる旨を書面で告げられた日から起算して8日を経過したときは、撤回することができない。", ans: true, e: "告げられていなければ、何日経っても撤回できる点に注意。" },
+  { id: 11, a: "gyoho", t: "買主が物件の引渡しを受け、かつ代金の全部を支払った場合でも、8日以内であればクーリング・オフができる。", ans: false, e: "引渡し＋代金全額支払の両方がそろうと不可。どちらか一方だけならまだ可能。" },
+  { id: 12, a: "gyoho", t: "宅建業者が自ら売主となり買主が宅建業者でない場合、代金の額の10分の2を超える手付を受領することはできない。", ans: true, e: "超えた部分が無効。手付は常に解約手付とみなされる。" },
+  { id: 13, a: "gyoho", t: "未完成物件の売買で、手付金等の額が代金の5%以下かつ1,000万円以下であれば、保全措置は不要である。", ans: true, e: "完成物件は10%以下かつ1,000万円以下。未完成5％／完成10％で対比。" },
+  { id: 14, a: "gyoho", t: "専任媒介契約の有効期間を6か月と定めた場合、その媒介契約全体が無効となる。", ans: false, e: "3か月に短縮されるだけで、契約自体は有効。" },
+  { id: 15, a: "gyoho", t: "専属専任媒介契約では、契約日から休業日を除き5日以内に指定流通機構へ登録し、1週間に1回以上業務処理状況を報告する。", ans: true, e: "専任は7日以内・2週間に1回以上。数字の入れ替えが定番。" },
+  { id: 16, a: "gyoho", t: "契約の締結を行う案内所には、成年者である専任の宅建士を1人以上置き、標識を掲示しなければならない。", ans: true, e: "契約を締結しない案内所でも標識は必要。専任宅建士の設置は不要。" },
+  { id: 17, a: "gyoho", t: "代金400万円超の宅地建物の売買の媒介では、一方から受領できる報酬の上限は「代金×3％＋6万円」に消費税相当額を加えた額である。", ans: true, e: "200万円以下5％、200万超400万以下4％＋2万円。低廉な空家等の特例は別枠。" },
+
+  // 権利関係
+  { id: 18, a: "kenri", t: "錯誤による意思表示は無効である。", ans: false, e: "改正民法では「取り消すことができる」。無効から取消しに変わった代表例。" },
+  { id: 19, a: "kenri", t: "錯誤が表意者の重大な過失によるものであった場合、原則として取消しを主張できない。", ans: true, e: "例外は、相手方が悪意・重過失のとき、または相手方が同一の錯誤に陥っていたとき。" },
+  { id: 20, a: "kenri", t: "詐欺による意思表示の取消しは、善意無過失の第三者に対抗することができない。", ans: true, e: "強迫は第三者にも対抗できる。だまされた人より脅された人が手厚く保護される。" },
+  { id: 21, a: "kenri", t: "無権代理行為は、本人が追認すれば、別段の意思表示がない限り契約の時にさかのぼって効力を生ずる。", ans: true, e: "追認の効果は遡及する。相手方には催告権・取消権がある。" },
+  { id: 22, a: "kenri", t: "所有の意思をもって平穏かつ公然と10年間占有した者は、占有開始時に善意無過失であれば所有権を取得する。", ans: true, e: "善意無過失の判定は占有開始時のみ。悪意なら20年。" },
+  { id: 23, a: "kenri", t: "抵当権者は、抵当不動産の賃料債権に物上代位できるが、払渡し前に差押えをする必要がある。", ans: true, e: "差押えを怠って払い渡されると、もはや追及できない。" },
+  { id: 24, a: "kenri", t: "建物の賃貸借（普通借家）で期間を6か月と定めた場合、期間の定めがない賃貸借とみなされる。", ans: true, e: "借家は1年未満なら期間の定めなし。定期借家にはこのルールが適用されない。" },
+  { id: 25, a: "kenri", t: "定期建物賃貸借契約は、公正証書によってしなければ効力を生じない。", ans: false, e: "書面（電磁的記録を含む）であればよい。公正証書等の書面が必須なのは事業用定期借地権。" },
+  { id: 26, a: "kenri", t: "借地権の存続期間は30年以上とされ、最初の更新後は20年、それ以降の更新後は10年となる。", ans: true, e: "30／20／10。当事者がこれより長い期間を定めることは可能。" },
+  { id: 27, a: "kenri", t: "相続人が配偶者と子2人の場合、配偶者の法定相続分は2分の1、子はそれぞれ4分の1である。", ans: true, e: "配偶者と直系尊属なら2/3と1/3、配偶者と兄弟姉妹なら3/4と1/4。" },
+  { id: 28, a: "kenri", t: "区分所有建物の建替え決議は、区分所有者及び議決権の各4分の3以上の多数で行う。", ans: false, e: "建替えは各5分の4以上。規約の設定・変更・廃止と共用部分の重大変更が各3/4以上。" },
+
+  // 法令上の制限
+  { id: 29, a: "seigen", t: "市街化区域内において1,000㎡以上の開発行為を行う場合、原則として都道府県知事の許可が必要である。", ans: true, e: "非線引き区域・準都市計画区域は3,000㎡以上、それ以外の区域は1ha以上。" },
+  { id: 30, a: "seigen", t: "市街化調整区域内では、規模の大小にかかわらず開発許可が必要である（例外を除く）。", ans: true, e: "調整区域に「小規模だから不要」という面積の下限はない。" },
+  { id: 31, a: "seigen", t: "市街化調整区域内で、農業を営む者の居住用建築物を建築する目的の開発行為は、開発許可を要しない。", ans: true, e: "ただし市街化区域内では、この農林漁業用の例外は適用されない。" },
+  { id: 32, a: "seigen", t: "建築物の敷地は、原則として幅員4m以上の道路に2m以上接しなければならない。", ans: true, e: "接道義務。4m未満の道でも2項道路ならセットバックで対応する。" },
+  { id: 33, a: "seigen", t: "特定行政庁が指定する角地では、建蔽率の限度が10分の1加算される。", ans: true, e: "防火地域内の耐火建築物等でも10分の1加算。両方満たせば合計10分の2。" },
+  { id: 34, a: "seigen", t: "第一種低層住居専用地域内では、建築物の高さは10mまたは12mのうち都市計画で定められた限度を超えてはならない。", ans: true, e: "第二種低層住居専用地域・田園住居地域も同じ制限。" },
+  { id: 35, a: "seigen", t: "市街化区域内で2,000㎡以上の土地売買契約を締結した場合、権利取得者は契約締結日から起算して2週間以内に事後届出をしなければならない。", ans: true, e: "市街化区域外の都市計画区域は5,000㎡以上、都市計画区域外は10,000㎡以上。" },
+  { id: 36, a: "seigen", t: "農地を農地のまま売買する場合には、農業委員会の許可が必要である。", ans: true, e: "3条許可。4条（転用）・5条（転用目的の権利移動）は原則として都道府県知事等の許可。" },
+  { id: 37, a: "seigen", t: "市街化区域内の農地を宅地に転用する場合、あらかじめ農業委員会へ届け出れば許可は不要である。", ans: true, e: "市街化区域内の特例。3条（権利移動のみ）にはこの特例がない点に注意。" },
+  { id: 38, a: "seigen", t: "仮換地が指定されると、従前の宅地の所有者はその宅地を売却することができなくなる。", ans: false, e: "所有権は従前地に残るので処分は可能。失うのは使用収益権のほう。" },
+
+  // 税・その他
+  { id: 39, a: "zei", t: "不動産取得税は、市町村が課する税である。", ans: false, e: "不動産取得税は都道府県税。固定資産税が市町村税。" },
+  { id: 40, a: "zei", t: "相続により不動産を取得した場合、不動産取得税は課されない。", ans: true, e: "形式的な移転として非課税。贈与や交換では課税される。" },
+  { id: 41, a: "zei", t: "固定資産税の納税義務者は、原則として当該年度の1月1日現在の固定資産の所有者である。", ans: true, e: "年の途中で売却しても、納税義務者は1月1日の所有者のまま。" },
+  { id: 42, a: "zei", t: "固定資産税の標準税率は1.4％である。", ans: true, e: "制限税率ではないので、条例でこれを超えることもできる。" },
+  { id: 43, a: "zei", t: "売買契約書を2通作成し、売主・買主が各1通ずつ所持する場合、2通とも課税文書となる。", ans: true, e: "写しであっても、署名押印などで原本と同様の効力があれば課税される。" },
+  { id: 44, a: "zei", t: "登録免許税の納税義務者は、登記を受ける者である。", ans: true, e: "登記権利者と登記義務者がいる場合は連帯納付義務。" },
+  { id: 45, a: "zei", t: "地価公示の標準地の価格は、毎年1月1日を価格判定の基準日とし、3月に公示される。", ans: true, e: "都道府県地価調査の基準地は7月1日基準で9月公表。" },
+  { id: 46, a: "zei", t: "広告で徒歩による所要時間を表示する場合、道路距離80mにつき1分として算出する。", ans: true, e: "端数は切り上げ。信号待ちや坂道は考慮しない。" },
+  { id: 47, a: "zei", t: "埋立地は、一般に干拓地よりも宅地として安全である。", ans: true, e: "干拓地は海面より低いことが多く、水害に弱い。埋立地は数mの盛土がある分ましと押さえる。" },
+  { id: 48, a: "zei", t: "住宅金融支援機構は、原則として自ら直接一般の住宅ローン融資を行っている。", ans: false, e: "証券化支援業務（フラット35）が中心。直接融資は災害復興など例外的な場面に限られる。" },
+];
+
+/* ── 部品 ───────────────────────────── */
+
+function daysBetween(a, b) {
+  return Math.round((b - a) / 86400000);
+}
+
+function DayGrid() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const total = daysBetween(START, EXAM) + 1;
+  const cells = [];
+  for (let i = 0; i < START.getDay(); i++) cells.push(null);
+  for (let i = 0; i < total; i++) {
+    const d = new Date(START.getFullYear(), START.getMonth(), START.getDate() + i);
+    cells.push(d);
+  }
+  return (
+    <div
+      className="grid gap-1"
+      style={{ gridTemplateColumns: "repeat(7, 1fr)" }}
+      aria-label="試験日までの日割り"
+    >
+      {cells.map((d, i) => {
+        if (!d) return <div key={i} />;
+        const isExam = d.getTime() === EXAM.getTime();
+        const isToday = d.getTime() === today.getTime();
+        const past = d < today;
+        return (
+          <div
+            key={i}
+            title={`${d.getMonth() + 1}/${d.getDate()}`}
+            style={{
+              aspectRatio: "1 / 1",
+              borderRadius: 1,
+              border: `1px solid ${isExam ? T.seal : T.line}`,
+              background: isExam
+                ? T.seal
+                : isToday
+                ? T.ink
+                : past
+                ? T.faint
+                : "transparent",
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function Bar({ value, tone }) {
+  return (
+    <div style={{ height: 4, background: T.faint, borderRadius: 2 }}>
+      <div
+        style={{
+          height: 4,
+          width: `${Math.round(value * 100)}%`,
+          background: tone || T.ink,
+          borderRadius: 2,
+          transition: "width .3s ease",
+        }}
+      />
+    </div>
+  );
+}
+
+/* ── 本体 ───────────────────────────── */
+
+function TakkenLedger() {
+  const [tab, setTab] = useState("plan");
+  const [done, setDone] = useState({});
+  const [stats, setStats] = useState({});
+  const [loaded, setLoaded] = useState(false);
+  const [saveNote, setSaveNote] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await window.storage.get("takken:v1");
+        if (r && r.value) {
+          const v = JSON.parse(r.value);
+          setDone(v.done || {});
+          setStats(v.stats || {});
+        }
+      } catch (e) {
+        /* 初回は記録なし */
+      }
+      setLoaded(true);
+    })();
+  }, []);
+
+  const persist = useCallback(async (nextDone, nextStats) => {
+    try {
+      await window.storage.set(
+        "takken:v1",
+        JSON.stringify({ done: nextDone, stats: nextStats })
+      );
+      setSaveNote("");
+    } catch (e) {
+      setSaveNote("保存できませんでした。通信を確認して、もう一度操作してください。");
+    }
+  }, []);
+
+  const toggle = (key) => {
+    const next = { ...done, [key]: !done[key] };
+    setDone(next);
+    persist(next, stats);
+  };
+
+  const record = (qid, area, correct) => {
+    const cur = stats[qid] || { o: 0, x: 0, area };
+    const next = {
+      ...stats,
+      [qid]: { ...cur, area, o: cur.o + (correct ? 1 : 0), x: cur.x + (correct ? 0 : 1) },
+    };
+    setStats(next);
+    persist(done, next);
+  };
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const left = Math.max(0, daysBetween(today, EXAM));
+
+  const allTasks = useMemo(
+    () => PHASES.flatMap((p) => p.weeks.flatMap((w) => w.tasks.map((_, i) => `${w.id}-${i}`))),
+    []
+  );
+  const doneCount = allTasks.filter((k) => done[k]).length;
+
+  const currentPhase = useMemo(() => {
+    const bounds = [
+      new Date(2026, 7, 24),
+      new Date(2026, 8, 14),
+      new Date(2026, 9, 5),
+    ];
+    if (today < bounds[0]) return 0;
+    if (today < bounds[1]) return 1;
+    if (today < bounds[2]) return 2;
+    return 3;
+  }, [today]);
+
+  return (
+    <div
+      style={{
+        background: T.paper,
+        color: T.ink,
+        fontFamily: F.body,
+        minHeight: "100vh",
+        backgroundImage: `linear-gradient(${T.line}22 1px, transparent 1px), linear-gradient(90deg, ${T.line}22 1px, transparent 1px)`,
+        backgroundSize: "22px 22px",
+      }}
+    >
+      <div className="mx-auto px-4 py-6" style={{ maxWidth: 560 }}>
+        {/* 見出し */}
+        <div className="flex items-end justify-between">
+          <div>
+            <div style={{ fontSize: 11, letterSpacing: ".18em", color: T.sub }}>
+              宅地建物取引士資格試験
+            </div>
+            <div style={{ fontFamily: F.disp, fontSize: 26, lineHeight: 1.2 }}>
+              2026年10月18日
+            </div>
+          </div>
+          <div className="text-right">
+            <div style={{ fontFamily: F.num, fontSize: 40, lineHeight: 1, color: T.seal }}>
+              {left}
+            </div>
+            <div style={{ fontSize: 11, color: T.sub }}>日</div>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <DayGrid />
+        </div>
+
+        <div
+          className="mt-3 flex items-center justify-between"
+          style={{ fontSize: 12, color: T.sub }}
+        >
+          <span style={{ fontFamily: F.disp, color: T.ink }}>
+            {PHASES[currentPhase].name}
+          </span>
+          <span style={{ fontFamily: F.num }}>
+            {doneCount}/{allTasks.length} 項目
+          </span>
+        </div>
+
+        {/* タブ */}
+        <div className="mt-5 flex gap-1">
+          {[
+            ["plan", "計画"],
+            ["quiz", "一問一答"],
+            ["log", "記録"],
+          ].map(([k, label]) => (
+            <button
+              key={k}
+              onClick={() => setTab(k)}
+              className="flex-1 py-2"
+              style={{
+                fontFamily: F.disp,
+                fontSize: 14,
+                letterSpacing: ".08em",
+                border: `1px solid ${tab === k ? T.ink : T.line}`,
+                background: tab === k ? T.ink : "transparent",
+                color: tab === k ? T.card : T.sub,
+                borderRadius: 2,
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {saveNote && (
+          <div className="mt-3 p-2" style={{ fontSize: 12, color: T.seal, border: `1px solid ${T.seal}` }}>
+            {saveNote}
+          </div>
+        )}
+
+        {!loaded ? (
+          <div className="mt-8 text-center" style={{ color: T.sub, fontSize: 13 }}>
+            記録を読み込んでいます…
+          </div>
+        ) : tab === "plan" ? (
+          <Plan done={done} toggle={toggle} current={currentPhase} />
+        ) : tab === "quiz" ? (
+          <Quiz stats={stats} record={record} />
+        ) : (
+          <Log stats={stats} done={done} allTasks={allTasks} />
+        )}
+
+        <div className="mt-8" style={{ fontSize: 11, color: T.sub, lineHeight: 1.7 }}>
+          出題は本試験の形式に合わせた自作問題です。法改正は毎年入るので、直前期に最新のテキストで数字を突き合わせてください。
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Plan({ done, toggle, current }) {
+  return (
+    <div className="mt-5">
+      {PHASES.map((p, pi) => (
+        <div key={p.name} className="mb-6">
+          <div
+            className="flex items-baseline justify-between pb-1"
+            style={{ borderBottom: `1px solid ${pi === current ? T.seal : T.line}` }}
+          >
+            <span style={{ fontFamily: F.disp, fontSize: 16 }}>{p.name}</span>
+            <span style={{ fontFamily: F.num, fontSize: 11, color: T.sub }}>{p.span}</span>
+          </div>
+          <div className="mt-2" style={{ fontSize: 12, color: T.sub }}>
+            {p.aim}
+          </div>
+          {p.weeks.map((w) => (
+            <div
+              key={w.id}
+              className="mt-3 p-3"
+              style={{ background: T.card, border: `1px solid ${T.line}`, borderRadius: 2 }}
+            >
+              <div style={{ fontFamily: F.num, fontSize: 11, color: T.sub, letterSpacing: ".05em" }}>
+                {w.label}
+              </div>
+              {w.tasks.map((t, i) => {
+                const key = `${w.id}-${i}`;
+                const on = !!done[key];
+                return (
+                  <button
+                    key={key}
+                    onClick={() => toggle(key)}
+                    className="mt-2 flex w-full items-start gap-2 text-left"
+                  >
+                    <span
+                      style={{
+                        flexShrink: 0,
+                        width: 15,
+                        height: 15,
+                        marginTop: 2,
+                        borderRadius: 1,
+                        border: `1px solid ${on ? T.ink : T.line}`,
+                        background: on ? T.ink : "transparent",
+                        color: T.card,
+                        fontSize: 10,
+                        lineHeight: "14px",
+                        textAlign: "center",
+                      }}
+                    >
+                      {on ? "✓" : ""}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 13.5,
+                        lineHeight: 1.6,
+                        color: on ? T.sub : T.ink,
+                        textDecoration: on ? "line-through" : "none",
+                      }}
+                    >
+                      {t}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Quiz({ stats, record }) {
+  const [area, setArea] = useState("all");
+  const [wrongOnly, setWrongOnly] = useState(false);
+  const [i, setI] = useState(0);
+  const [picked, setPicked] = useState(null);
+
+  const pool = useMemo(() => {
+    let p = Q.filter((q) => area === "all" || q.a === area);
+    if (wrongOnly) p = p.filter((q) => stats[q.id] && stats[q.id].x > 0);
+    return p;
+  }, [area, wrongOnly, stats]);
+
+  useEffect(() => {
+    setI(0);
+    setPicked(null);
+  }, [area, wrongOnly]);
+
+  if (pool.length === 0) {
+    return (
+      <div className="mt-6">
+        <AreaFilter area={area} setArea={setArea} wrongOnly={wrongOnly} setWrongOnly={setWrongOnly} />
+        <div className="mt-8 text-center" style={{ fontSize: 13, color: T.sub, lineHeight: 1.8 }}>
+          間違えた問題はまだありません。
+          <br />
+          絞り込みを外して解き始めてください。
+        </div>
+      </div>
+    );
+  }
+
+  const q = pool[Math.min(i, pool.length - 1)];
+  const answered = picked !== null;
+  const correct = answered && picked === q.ans;
+
+  const choose = (v) => {
+    if (answered) return;
+    setPicked(v);
+    record(q.id, q.a, v === q.ans);
+  };
+
+  const next = () => {
+    setPicked(null);
+    setI((n) => (n + 1) % pool.length);
+  };
+
+  return (
+    <div className="mt-5">
+      <AreaFilter area={area} setArea={setArea} wrongOnly={wrongOnly} setWrongOnly={setWrongOnly} />
+
+      <div
+        className="mt-4 p-4"
+        style={{ background: T.card, border: `1px solid ${T.line}`, borderRadius: 2 }}
+      >
+        <div className="flex justify-between" style={{ fontFamily: F.num, fontSize: 11, color: T.sub }}>
+          <span>{AREAS.find((x) => x.key === q.a).label}</span>
+          <span>
+            {Math.min(i, pool.length - 1) + 1} / {pool.length}
+          </span>
+        </div>
+        <div style={{ fontSize: 15, lineHeight: 1.85, marginTop: 10, fontFamily: F.disp }}>
+          {q.t}
+        </div>
+
+        <div className="mt-4 flex gap-2">
+          {[
+            [true, "○ 正しい"],
+            [false, "× 誤り"],
+          ].map(([v, label]) => {
+            const chosen = picked === v;
+            const isAns = q.ans === v;
+            let bg = "transparent",
+              bd = T.line,
+              fg = T.ink;
+            if (answered) {
+              if (isAns) {
+                bg = T.ok;
+                bd = T.ok;
+                fg = "#fff";
+              } else if (chosen) {
+                bg = T.seal;
+                bd = T.seal;
+                fg = "#fff";
+              } else {
+                fg = T.sub;
+              }
+            }
+            return (
+              <button
+                key={String(v)}
+                onClick={() => choose(v)}
+                className="flex-1 py-3"
+                style={{
+                  border: `1px solid ${bd}`,
+                  background: bg,
+                  color: fg,
+                  borderRadius: 2,
+                  fontSize: 14,
+                  fontFamily: F.disp,
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
+        {answered && (
+          <div className="mt-4">
+            <div
+              style={{
+                fontFamily: F.disp,
+                fontSize: 14,
+                color: correct ? T.ok : T.seal,
+              }}
+            >
+              {correct ? "正解" : "不正解"}
+            </div>
+            <div style={{ fontSize: 13, lineHeight: 1.8, marginTop: 6 }}>{q.e}</div>
+            <button
+              onClick={next}
+              className="mt-4 w-full py-3"
+              style={{
+                background: T.ink,
+                color: T.card,
+                borderRadius: 2,
+                fontSize: 14,
+                fontFamily: F.disp,
+                letterSpacing: ".08em",
+              }}
+            >
+              次の問題へ
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AreaFilter({ area, setArea, wrongOnly, setWrongOnly }) {
+  return (
+    <div>
+      <div className="flex flex-wrap gap-1">
+        {[{ key: "all", label: "全分野" }, ...AREAS].map((a) => (
+          <button
+            key={a.key}
+            onClick={() => setArea(a.key)}
+            className="px-2 py-1"
+            style={{
+              fontSize: 12,
+              border: `1px solid ${area === a.key ? T.ink : T.line}`,
+              background: area === a.key ? T.ink : "transparent",
+              color: area === a.key ? T.card : T.sub,
+              borderRadius: 2,
+            }}
+          >
+            {a.label}
+          </button>
+        ))}
+      </div>
+      <button
+        onClick={() => setWrongOnly(!wrongOnly)}
+        className="mt-2 px-2 py-1"
+        style={{
+          fontSize: 12,
+          border: `1px solid ${wrongOnly ? T.seal : T.line}`,
+          color: wrongOnly ? T.seal : T.sub,
+          borderRadius: 2,
+        }}
+      >
+        {wrongOnly ? "間違えた問題のみ表示中" : "間違えた問題だけ解く"}
+      </button>
+    </div>
+  );
+}
+
+function Log({ stats, done, allTasks }) {
+  const rows = AREAS.map((a) => {
+    const ids = Q.filter((q) => q.a === a.key).map((q) => q.id);
+    let o = 0,
+      x = 0;
+    ids.forEach((id) => {
+      if (stats[id]) {
+        o += stats[id].o;
+        x += stats[id].x;
+      }
+    });
+    const total = o + x;
+    return { ...a, o, x, rate: total ? o / total : 0, total };
+  });
+  const doneCount = allTasks.filter((k) => done[k]).length;
+
+  return (
+    <div className="mt-5">
+      <div style={{ fontFamily: F.disp, fontSize: 16, borderBottom: `1px solid ${T.line}`, paddingBottom: 4 }}>
+        分野別の正答率
+      </div>
+      {rows.map((r) => (
+        <div key={r.key} className="mt-4">
+          <div className="flex items-baseline justify-between">
+            <span style={{ fontSize: 13 }}>{r.label}</span>
+            <span style={{ fontFamily: F.num, fontSize: 12, color: T.sub }}>
+              {r.total ? `${Math.round(r.rate * 100)}%` : "未着手"}　目標 {r.goal}
+            </span>
+          </div>
+          <div className="mt-1">
+            <Bar value={r.rate} tone={r.rate >= 0.8 ? T.ok : r.rate >= 0.6 ? T.ink : T.seal} />
+          </div>
+          <div style={{ fontFamily: F.num, fontSize: 11, color: T.sub, marginTop: 3 }}>
+            {r.o} 正 / {r.x} 誤
+          </div>
+        </div>
+      ))}
+
+      <div
+        className="mt-7"
+        style={{ fontFamily: F.disp, fontSize: 16, borderBottom: `1px solid ${T.line}`, paddingBottom: 4 }}
+      >
+        計画の消化
+      </div>
+      <div className="mt-3">
+        <Bar value={allTasks.length ? doneCount / allTasks.length : 0} />
+      </div>
+      <div style={{ fontFamily: F.num, fontSize: 12, color: T.sub, marginTop: 4 }}>
+        {doneCount} / {allTasks.length} 項目
+      </div>
+
+      <div className="mt-6 p-3" style={{ background: T.card, border: `1px solid ${T.line}`, fontSize: 12.5, lineHeight: 1.9 }}>
+        合格ラインは年によって34〜38点。業法20問を18問取り、法令と税で12問中12問を狙い、権利関係は14問中7問で計37点。この配分なら権利関係に深入りしなくて済みます。
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<TakkenLedger />);
+</script>
+</body>
+</html>
