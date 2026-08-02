@@ -208,6 +208,165 @@ const PHASES = [
   },
 ];
 
+/* ── 短期集中（絶対合格）───────────────────
+   開始日から試験日までを weight の比で自動的に割り振る。
+   いつ始めても日程が破綻しないので「今から」でも使える。
+   ──────────────────────────────────────── */
+
+const SPRINT_TIME = [
+  { when: "平日", block: "宅建 90分（朝30分・夜60分）", note: "朝は暗記の確認、夜は問題演習" },
+  { when: "平日", block: "営業 30分", note: "移動中・家事中に音声か読書で。手を止めない" },
+  { when: "土または日", block: "宅建 4〜5時間＋ムアライフ 2時間", note: "宅建はまとめ解き、ムアライフは発信と声かけ" },
+];
+
+const SPRINT = [
+  {
+    id: "s1",
+    title: "業法① 骨格をつかむ",
+    weight: 1.5,
+    aim: "免許と宅建士。ここは毎年ほぼ同じ形で出る",
+    tasks: [
+      "免許制度（免許基準・欠格事由・免許換え・廃業等の届出）",
+      "宅建士（登録・宅建士証・設置義務5人に1人）",
+      "営業保証金と保証協会を対比表にする（1,000万／500万・60万／30万）",
+      "この範囲の一問一答を2周。2周目は全問正解になるまで",
+    ],
+  },
+  {
+    id: "s2",
+    title: "業法② 書面と8種制限",
+    weight: 1.5,
+    aim: "得点源の中の得点源。ここを落とすと合格が遠のく",
+    tasks: [
+      "35条書面と37条書面を1枚の対比表にして、白紙に再現できるまで",
+      "8種制限（クーリング・オフ／手付／保全措置／損害賠償額の予定）",
+      "媒介契約の3類型（登録5日・7日、報告1週間・2週間）",
+      "報酬計算を10問。電卓なしで手順が出るまで",
+    ],
+  },
+  {
+    id: "s3",
+    title: "業法③ 満点を取りにいく",
+    weight: 1,
+    aim: "20問中18問ではなく20問を狙う。ここで貯金を作る",
+    tasks: [
+      "監督処分・罰則、業務上の規制（誇大広告・守秘義務・帳簿）",
+      "業法の分野別過去問を1周。正答率90%を超えるまで繰り返す",
+      "間違えた問題だけノートに転記（理由まで書く）",
+    ],
+  },
+  {
+    id: "s4",
+    title: "法令上の制限",
+    weight: 1.5,
+    aim: "数字の暗記が9割。覚えれば必ず取れる8問",
+    tasks: [
+      "都市計画法（開発許可の面積要件を暗記：1,000㎡／3,000㎡／1ha）",
+      "建築基準法（接道義務・建蔽率の加算・用途制限・高さ制限）",
+      "国土利用計画法（2,000㎡／5,000㎡／10,000㎡・2週間）",
+      "農地法3条4条5条と土地区画整理法（仮換地）",
+      "分野別過去問を1周",
+    ],
+  },
+  {
+    id: "s5",
+    title: "税・その他・5点免除",
+    weight: 1,
+    aim: "範囲が狭いわりに8問。費用対効果が最も高い",
+    tasks: [
+      "不動産取得税・固定資産税・印紙税・登録免許税（誰が課すか／いつ時点か）",
+      "地価公示と鑑定評価（1月1日・3月／7月1日・9月）",
+      "住宅金融支援機構・景表法・土地建物（統計は直前に最新版で）",
+      "分野別過去問を1周",
+    ],
+  },
+  {
+    id: "s6",
+    title: "権利関係 頻出だけ",
+    weight: 2,
+    aim: "14問中8問取れれば十分。深追いは絶対にしない",
+    tasks: [
+      "意思表示・代理・時効・対抗問題（177条）",
+      "抵当権・債務不履行・契約不適合責任",
+      "賃貸借と借地借家法（30年／20年／10年、定期借家）",
+      "区分所有法（3/4と4/5）・相続（法定相続分）",
+      "捨てる分野を決める（判例問題・難問は最初から捨てる）",
+    ],
+  },
+  {
+    id: "s7",
+    title: "年度別過去問",
+    weight: 1.5,
+    aim: "13:00–15:00の2時間で解く。時間配分を体に入れる",
+    tasks: [
+      "年度別過去問を5年分。必ず時間を計る",
+      "解く順番を固定する（業法→法令→税→権利の順がおすすめ）",
+      "毎回、解き直しまでセットで終わらせる",
+      "40点を安定して超えるまで年度を追加",
+    ],
+  },
+  {
+    id: "s8",
+    title: "弱点だけを潰す",
+    weight: 1.5,
+    aim: "新しい教材は足さない。間違いノートが教材",
+    tasks: [
+      "間違いノートを分野別に整理して通読",
+      "予想模試2回（本番と同じ時間帯で）",
+      "正答率が80%を切っている分野だけ、分野別過去問をもう1周",
+      "アプリの「間違えた問題だけ解く」で全問正解になるまで",
+    ],
+  },
+  {
+    id: "s9",
+    title: "直前の総仕上げ",
+    weight: 0.8,
+    aim: "詰め込まない。整えることに使う",
+    tasks: [
+      "35条・37条の対比表を白紙に再現",
+      "数字の総ざらい（期間・面積・割合・金額）",
+      "最新の統計と法改正をチェック",
+      "持ち物・会場までの経路・当日の起床時間を前日までに確定",
+      "10/18 本試験 13:00–15:00",
+    ],
+  },
+];
+
+function toISO(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function fromISO(s) {
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function md(d) {
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+}
+
+/* 開始日から試験日までを weight の比で区切る */
+function sprintSchedule(startISO) {
+  const start = startISO ? fromISO(startISO) : new Date();
+  start.setHours(0, 0, 0, 0);
+  const totalDays = Math.max(SPRINT.length, daysBetween(start, EXAM) + 1);
+  const totalWeight = SPRINT.reduce((s, x) => s + x.weight, 0);
+  /* 累積比で区切る。ステップごとに丸めると誤差が溜まって
+     最後の直前期が1日に潰れるため、境界そのものを丸める。 */
+  let acc = 0;
+  let cursor = 0;
+  return SPRINT.map((s, i) => {
+    acc += s.weight;
+    const bound =
+      i === SPRINT.length - 1 ? totalDays : Math.round((totalDays * acc) / totalWeight);
+    const end = Math.max(cursor, Math.min(bound, totalDays) - 1);
+    const from = new Date(start.getFullYear(), start.getMonth(), start.getDate() + cursor);
+    const to = new Date(start.getFullYear(), start.getMonth(), start.getDate() + end);
+    cursor = end + 1;
+    return { ...s, from, to };
+  });
+}
+
 /* ── 一問一答 ───────────────────────────── */
 
 const Q = [
@@ -287,7 +446,7 @@ function DayGrid() {
   return (
     <div
       className="grid gap-1"
-      style={{ gridTemplateColumns: "repeat(7, 1fr)" }}
+      style={{ gridTemplateColumns: "repeat(7, 1fr)", maxWidth: 240, margin: "0 auto" }}
       aria-label="試験日までの日割り"
     >
       {cells.map((d, i) => {
@@ -340,41 +499,43 @@ function TakkenLedger() {
   const [tab, setTab] = useState("plan");
   const [done, setDone] = useState({});
   const [stats, setStats] = useState({});
+  const [mode, setMode] = useState("sprint");
+  const [sprintStart, setSprintStart] = useState(null);
   const [loaded, setLoaded] = useState(false);
   const [saveNote, setSaveNote] = useState("");
 
   useEffect(() => {
     (async () => {
+      let v = {};
       try {
         const r = await window.storage.get("takken:v1");
-        if (r && r.value) {
-          const v = JSON.parse(r.value);
-          setDone(v.done || {});
-          setStats(v.stats || {});
-        }
+        if (r && r.value) v = JSON.parse(r.value) || {};
       } catch (e) {
         /* 初回は記録なし */
       }
+      setDone(v.done || {});
+      setStats(v.stats || {});
+      setMode(v.mode === "standard" ? "standard" : "sprint");
+      setSprintStart(v.sprintStart || toISO(new Date()));
       setLoaded(true);
     })();
   }, []);
 
-  const persist = useCallback(async (nextDone, nextStats) => {
+  const persist = useCallback(async (next) => {
     try {
-      await window.storage.set(
-        "takken:v1",
-        JSON.stringify({ done: nextDone, stats: nextStats })
-      );
+      await window.storage.set("takken:v1", JSON.stringify(next));
       setSaveNote("");
     } catch (e) {
       setSaveNote("保存できませんでした。通信を確認して、もう一度操作してください。");
     }
   }, []);
 
+  const snapshot = { done, stats, mode, sprintStart };
+
   const toggle = (key) => {
     const next = { ...done, [key]: !done[key] };
     setDone(next);
-    persist(next, stats);
+    persist({ ...snapshot, done: next });
   };
 
   const record = (qid, area, correct) => {
@@ -384,16 +545,32 @@ function TakkenLedger() {
       [qid]: { ...cur, area, o: cur.o + (correct ? 1 : 0), x: cur.x + (correct ? 0 : 1) },
     };
     setStats(next);
-    persist(done, next);
+    persist({ ...snapshot, stats: next });
+  };
+
+  const changeMode = (m) => {
+    setMode(m);
+    persist({ ...snapshot, mode: m });
+  };
+
+  const restartSprint = () => {
+    const iso = toISO(new Date());
+    setSprintStart(iso);
+    persist({ ...snapshot, sprintStart: iso });
   };
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const left = Math.max(0, daysBetween(today, EXAM));
 
+  const schedule = useMemo(() => sprintSchedule(sprintStart), [sprintStart]);
+
   const allTasks = useMemo(
-    () => PHASES.flatMap((p) => p.weeks.flatMap((w) => w.tasks.map((_, i) => `${w.id}-${i}`))),
-    []
+    () =>
+      mode === "sprint"
+        ? SPRINT.flatMap((s) => s.tasks.map((_, i) => `${s.id}-${i}`))
+        : PHASES.flatMap((p) => p.weeks.flatMap((w) => w.tasks.map((_, i) => `${w.id}-${i}`))),
+    [mode]
   );
   const doneCount = allTasks.filter((k) => done[k]).length;
 
@@ -408,6 +585,11 @@ function TakkenLedger() {
     if (today < bounds[2]) return 2;
     return 3;
   }, [today]);
+
+  const currentStep = useMemo(() => {
+    const i = schedule.findIndex((s) => today <= s.to);
+    return i === -1 ? schedule.length - 1 : i;
+  }, [schedule, today.getTime()]);
 
   return (
     <div
@@ -448,7 +630,7 @@ function TakkenLedger() {
           style={{ fontSize: 12, color: T.sub }}
         >
           <span style={{ fontFamily: F.disp, color: T.ink }}>
-            {PHASES[currentPhase].name}
+            {mode === "sprint" ? schedule[currentStep].title : PHASES[currentPhase].name}
           </span>
           <span style={{ fontFamily: F.num }}>
             {doneCount}/{allTasks.length} 項目
@@ -492,7 +674,17 @@ function TakkenLedger() {
             記録を読み込んでいます…
           </div>
         ) : tab === "plan" ? (
-          <Plan done={done} toggle={toggle} current={currentPhase} />
+          <Plan
+            done={done}
+            toggle={toggle}
+            current={currentPhase}
+            mode={mode}
+            changeMode={changeMode}
+            schedule={schedule}
+            currentStep={currentStep}
+            sprintStart={sprintStart}
+            restartSprint={restartSprint}
+          />
         ) : tab === "quiz" ? (
           <Quiz stats={stats} record={record} />
         ) : (
@@ -507,9 +699,154 @@ function TakkenLedger() {
   );
 }
 
-function Plan({ done, toggle, current }) {
+function TaskRow({ id, label, done, toggle }) {
+  const on = !!done[id];
+  return (
+    <button onClick={() => toggle(id)} className="mt-2 flex w-full items-start gap-2 text-left">
+      <span
+        style={{
+          flexShrink: 0,
+          width: 15,
+          height: 15,
+          marginTop: 2,
+          borderRadius: 1,
+          border: `1px solid ${on ? T.ink : T.line}`,
+          background: on ? T.ink : "transparent",
+          color: T.card,
+          fontSize: 10,
+          lineHeight: "14px",
+          textAlign: "center",
+        }}
+      >
+        {on ? "✓" : ""}
+      </span>
+      <span
+        style={{
+          fontSize: 13.5,
+          lineHeight: 1.6,
+          color: on ? T.sub : T.ink,
+          textDecoration: on ? "line-through" : "none",
+        }}
+      >
+        {label}
+      </span>
+    </button>
+  );
+}
+
+function Plan(props) {
+  const { mode, changeMode } = props;
   return (
     <div className="mt-5">
+      <div className="flex gap-1">
+        {[
+          ["sprint", "短期集中"],
+          ["standard", "標準（7/29開始）"],
+        ].map(([k, label]) => (
+          <button
+            key={k}
+            onClick={() => changeMode(k)}
+            className="flex-1 py-1"
+            style={{
+              fontSize: 12,
+              border: `1px solid ${mode === k ? T.ink : T.line}`,
+              background: mode === k ? T.ink : "transparent",
+              color: mode === k ? T.card : T.sub,
+              borderRadius: 2,
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {mode === "sprint" ? <Sprint {...props} /> : <Standard {...props} />}
+    </div>
+  );
+}
+
+function Sprint({ done, toggle, schedule, currentStep, sprintStart, restartSprint }) {
+  return (
+    <div>
+      <div
+        className="mt-4 p-3"
+        style={{ background: T.card, border: `1px solid ${T.seal}`, borderRadius: 2 }}
+      >
+        <div style={{ fontFamily: F.disp, fontSize: 14, color: T.seal }}>
+          目標 41点（合格ライン＋3〜7点の余裕を作る）
+        </div>
+        <div style={{ fontSize: 12.5, lineHeight: 1.9, marginTop: 6 }}>
+          宅建業法 19／20・法令上の制限 7／8・税その他 7／8・権利関係 8／14。
+          業法と法令で貯金を作り、権利関係は頻出だけ。合格ラインは年によって34〜38点なので、
+          41点を狙えば当日の取りこぼしを吸収できます。
+        </div>
+      </div>
+
+      <div
+        className="mt-3 p-3"
+        style={{ background: T.card, border: `1px solid ${T.line}`, borderRadius: 2 }}
+      >
+        <div style={{ fontFamily: F.disp, fontSize: 14 }}>1週間の使い方</div>
+        <div style={{ fontSize: 12, color: T.sub, marginTop: 4, lineHeight: 1.7 }}>
+          営業とムアライフを止めないための配分です。宅建は週12〜15時間を確保します。
+        </div>
+        {SPRINT_TIME.map((t, i) => (
+          <div key={i} className="mt-2" style={{ borderTop: `1px solid ${T.faint}`, paddingTop: 6 }}>
+            <div style={{ fontFamily: F.num, fontSize: 11, color: T.sub }}>{t.when}</div>
+            <div style={{ fontSize: 13, marginTop: 2 }}>{t.block}</div>
+            <div style={{ fontSize: 11.5, color: T.sub, marginTop: 2 }}>{t.note}</div>
+          </div>
+        ))}
+      </div>
+
+      {schedule.map((s, i) => {
+        const isNow = i === currentStep;
+        return (
+          <div key={s.id} className="mt-4">
+            <div
+              className="flex items-baseline justify-between pb-1"
+              style={{ borderBottom: `1px solid ${isNow ? T.seal : T.line}` }}
+            >
+              <span style={{ fontFamily: F.disp, fontSize: 16, color: isNow ? T.seal : T.ink }}>
+                {s.title}
+              </span>
+              <span style={{ fontFamily: F.num, fontSize: 11, color: T.sub }}>
+                {md(s.from)}–{md(s.to)}
+              </span>
+            </div>
+            <div className="mt-2" style={{ fontSize: 12, color: T.sub }}>
+              {s.aim}
+            </div>
+            <div
+              className="mt-2 p-3"
+              style={{ background: T.card, border: `1px solid ${T.line}`, borderRadius: 2 }}
+            >
+              {s.tasks.map((t, ti) => (
+                <TaskRow key={ti} id={`${s.id}-${ti}`} label={t} done={done} toggle={toggle} />
+              ))}
+            </div>
+          </div>
+        );
+      })}
+
+      <div className="mt-6 flex items-center justify-between">
+        <span style={{ fontFamily: F.num, fontSize: 11, color: T.sub }}>
+          開始日 {sprintStart || "—"}
+        </span>
+        <button
+          onClick={restartSprint}
+          className="px-2 py-1"
+          style={{ fontSize: 12, color: T.sub, border: `1px solid ${T.line}`, borderRadius: 2 }}
+        >
+          今日から日程を引き直す
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Standard({ done, toggle, current }) {
+  return (
+    <div className="mt-4">
       {PHASES.map((p, pi) => (
         <div key={p.name} className="mb-6">
           <div
@@ -531,45 +868,9 @@ function Plan({ done, toggle, current }) {
               <div style={{ fontFamily: F.num, fontSize: 11, color: T.sub, letterSpacing: ".05em" }}>
                 {w.label}
               </div>
-              {w.tasks.map((t, i) => {
-                const key = `${w.id}-${i}`;
-                const on = !!done[key];
-                return (
-                  <button
-                    key={key}
-                    onClick={() => toggle(key)}
-                    className="mt-2 flex w-full items-start gap-2 text-left"
-                  >
-                    <span
-                      style={{
-                        flexShrink: 0,
-                        width: 15,
-                        height: 15,
-                        marginTop: 2,
-                        borderRadius: 1,
-                        border: `1px solid ${on ? T.ink : T.line}`,
-                        background: on ? T.ink : "transparent",
-                        color: T.card,
-                        fontSize: 10,
-                        lineHeight: "14px",
-                        textAlign: "center",
-                      }}
-                    >
-                      {on ? "✓" : ""}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: 13.5,
-                        lineHeight: 1.6,
-                        color: on ? T.sub : T.ink,
-                        textDecoration: on ? "line-through" : "none",
-                      }}
-                    >
-                      {t}
-                    </span>
-                  </button>
-                );
-              })}
+              {w.tasks.map((t, i) => (
+                <TaskRow key={i} id={`${w.id}-${i}`} label={t} done={done} toggle={toggle} />
+              ))}
             </div>
           ))}
         </div>
@@ -806,7 +1107,7 @@ function Log({ stats, done, allTasks }) {
       </div>
 
       <div className="mt-6 p-3" style={{ background: T.card, border: `1px solid ${T.line}`, fontSize: 12.5, lineHeight: 1.9 }}>
-        合格ラインは年によって34〜38点。業法20問を18問取り、法令と税で12問中12問を狙い、権利関係は14問中7問で計37点。この配分なら権利関係に深入りしなくて済みます。
+        合格ラインは年によって34〜38点。短期集中プランでは、業法19／法令7／税その他7／権利8の計41点を狙います。合格ラインちょうどを目標にすると当日の1問が命取りになるので、業法と法令で先に貯金を作り、権利関係には深入りしません。
       </div>
     </div>
   );

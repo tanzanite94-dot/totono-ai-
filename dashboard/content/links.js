@@ -40,7 +40,7 @@ window.TOTONO_DATA.files_content["links.md"] = `# よく使うリンク集
 window.TOTONO_CONTENT = window.TOTONO_CONTENT || {};
 window.TOTONO_CONTENT["links.md"] = {
   title: "よく使うリンク集",
-  updated: "2026-07-29",
+  updated: "2026-08-02",
   quicklinks: [
     { label: "LINE公式アカウント", url: "https://manager.line.biz/", emoji: "💬", group: "毎日" },
     { label: "金融アカデミー（毎朝7:00）", url: "https://www.facebook.com/", emoji: "📻", group: "毎日" },
