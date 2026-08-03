@@ -10,6 +10,9 @@ window.TOTONO_DATA.files = {
   "リンク集": [
     { label: "よく使うリンク集", name: "よく使うリンク集", path: "links.md" }
   ],
+  "学習": [
+    { label: "宅建 短期集中プラン", name: "宅建 短期集中プラン（営業・ムアライフとの両立）", path: "study/takken-sprint-plan.md" }
+  ],
   "LINK": [
     { label: "スピーチ本文", name: "LINK 1分スピーチ本文", path: "business/mlm/LINK-speech.md" },
     { label: "告知文集", name: "LINK 告知文集", path: "business/mlm/LINK-announcements.md" }
