@@ -26,5 +26,8 @@ window.TOTONO_DATA.files = {
     { label: "【リブマイ・ファースト】質問議事録 2026-06-11", name: "質問議事録 2026-06-11", path: "business/life-consulting/UBM/meetings/2026-06-11-qa.md" }
   ],
   "メラルーカ": [],
-  "リブマイセルフ": []
+  "リブマイセルフ": [],
+  "振り返り": [
+    { label: "自己分析 5ステップ", name: "自己分析 5ステップ（2026-08-18）", path: "secretary/notes/2026-08-18-自己分析.md" }
+  ]
 };
