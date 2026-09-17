@@ -16,6 +16,8 @@ window.TOTONO_MANIFEST = {
     "content/business/life-consulting/UBM/meetings/2026-06-11-qa.js",
     "content/finance/subscriptions.js",
     "content/study/takken-sprint-plan.js",
-    "content/links.js"
+    "content/links.js",
+    "content/secretary/notes/2026-08-18-自己分析.js",
+    "content/users/kelly-context-for-ai.js"
   ]
 };
