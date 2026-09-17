@@ -28,6 +28,7 @@ window.TOTONO_DATA.files = {
   "メラルーカ": [],
   "リブマイセルフ": [],
   "振り返り": [
-    { label: "自己分析 5ステップ", name: "自己分析 5ステップ（2026-08-18）", path: "secretary/notes/2026-08-18-自己分析.md" }
+    { label: "自己分析 5ステップ", name: "自己分析 5ステップ（2026-08-18）", path: "secretary/notes/2026-08-18-自己分析.md" },
+    { label: "AI共有用プロフィール", name: "プロフィール・背景情報（他AI共有用）", path: "users/kelly-context-for-ai.md" }
   ]
 };
